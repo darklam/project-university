@@ -1,3 +1,6 @@
+#ifndef CAMERA_DTO
+#define CAMERA_DTO
+
 class CameraDTO {
  public:
   CameraDTO() {}
@@ -5,3 +8,5 @@ class CameraDTO {
  private:
   char* title;
 };
+
+#endif
