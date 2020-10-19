@@ -1,0 +1,6 @@
+datasets
+.vscode
+.devcontainer
+bin/**
+!bin/.gitkeep
+.DS_Store
