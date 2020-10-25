@@ -62,6 +62,10 @@ class List {
 
   int getLength() { return this->length; }
 
+  Node<T>* getRoot() {
+    return this->root;
+  }
+
  private:
   Node<T>* root = nullptr;
   int length = 0;

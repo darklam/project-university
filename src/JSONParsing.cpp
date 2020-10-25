@@ -30,3 +30,7 @@ void JSONParsing::parseJSON(const char* path, const char* filename) {
     free(line);
   }
 }
+
+List<CameraDTO*>* JSONParsing::loadData(const char* basePath) {
+  
+}
