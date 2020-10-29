@@ -4,37 +4,38 @@
 #include "List.hpp"
 #include "Utils.hpp"
 #include "HashMap.hpp"
+#include <unistd.h>
 
 int main() {
-    JSONParsing::parseJSON("../datasets/cameras/buy.net/4233.json", "whatever");
-    auto result = FileSystem::listContents("../datasets/cameras", 'd');
-    List<char*>* files = new List<char*>();
-    for (auto current = result->getRoot(); current != nullptr; current = *(current->getNext())) {
-        auto value = current->getValue();
-        if (value == NULL) {
-            printf("Oof\n");
-            continue;
-        }
-        if (Utils::compareStrings(value, "..") || Utils::compareStrings(value, ".")) {
-            continue;
-        }
-        auto path = FileSystem::join("../datasets/cameras", value);
-        auto currentFiles = FileSystem::listContents(path, 'f');
-        delete[] path;
-        for (auto j = currentFiles->getRoot(); j != nullptr; j = *(j->getNext())) {
-            auto val = j->getValue();
-            files->add(val);
-        }
-        delete currentFiles;
-        delete[] value;
-    }
-    delete result;
+    int len = 2048;
+    char cwd[len];
+    getcwd(cwd, len);
+    auto path = FileSystem::join(cwd, "datasets/cameras/buy.net/4233.json");
+    printf("%s\n", path);
+    auto result = JSONParsing::parseJSON(path, "whatever");
+    // auto path = "../datasets/cameras";
+    auto props = result->getProperties()->getEntries();
 
-    for (auto i = files->getRoot(); i != nullptr; i = *(i->getNext())) {
-        auto value = i->getValue();
-        printf("%s\n", value);
-        delete[] value;
+    for (auto i = props->getRoot(); i != nullptr; i = *(i->getNext())) {
+        auto cur = i->getValue();
+        auto val = cur->value;
+        if (val->isArray) {
+            continue;
+        }
+        printf("Key: %s, Value: %s\n", cur->key, val->value);
+        delete cur;
+        delete val;
     }
-    delete files;
+    delete props;
+    delete result;
+    delete[] path;
+    // auto files = FileSystem::getAllFiles(path);
+
+    // for (auto i = files->getRoot(); i != nullptr; i = *(i->getNext())) {
+    //     auto value = i->getValue();
+    //     printf("%s\n", value);
+    //     delete[] value;
+    // }
+    // delete files;
     return 0;
 }

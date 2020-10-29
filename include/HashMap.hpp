@@ -22,6 +22,12 @@ struct HashResult {
 };
 
 template <typename T>
+struct Entry {
+  char* key;
+  T value;
+};
+
+template <typename T>
 class Bucket {
  public:
   Bucket(char* key, T value) {
@@ -33,9 +39,7 @@ class Bucket {
 
   T getValue() { return this->value; }
 
-  void setValue(T value) {
-    this->value = value;
-  }
+  void setValue(T value) { this->value = value; }
 
  private:
   char* key;
@@ -45,7 +49,12 @@ class Bucket {
 template <typename T>
 class HashMap {
  public:
-  HashMap() { this->buckets = new List<Bucket<T>*>*[this->bucketSize]; }
+  HashMap() {
+    this->buckets = new List<Bucket<T>*>*[this->bucketSize];
+    for (int i = 0; i < this->bucketSize; i++) {
+      this->buckets[i] = nullptr;
+    }
+  }
 
   void set(char* key, T value) {
     unsigned long index = this->hashFunc(key);
@@ -58,7 +67,8 @@ class HashMap {
       this->buckets[index] = new List<Bucket<T>*>();
       bucket = this->buckets[index];
     }
-    for (Node<Bucket<T>*>* cur = bucket->getRoot(); cur != nullptr; cur = *(cur->getNext())) {
+    for (Node<Bucket<T>*>* cur = bucket->getRoot(); cur != nullptr;
+         cur = *(cur->getNext())) {
       Bucket<T>* val = cur->getValue();
       if (Utils::compareStrings(val->getKey(), key)) {
         val->setValue(value);
@@ -66,6 +76,27 @@ class HashMap {
       }
     }
     bucket->add(new Bucket<T>(key, value));
+  }
+
+  List<Entry<T>*>* getEntries() {
+    List<Entry<T>*>* entries = new List<Entry<T>*>();
+    for (int i = 0; i < this->bucketSize; i++) {
+      if (this->buckets[i] == nullptr) {
+        continue;
+      }
+
+      List<Bucket<T>*>* current = this->buckets[i];
+      for (Node<Bucket<T>*>* cur = current->getRoot(); cur != nullptr;
+           cur = *(cur->getNext())) {
+        Entry<T>* entry = new Entry<T>();
+        Bucket<T>* currentBucket = cur->getValue();
+        entry->key = currentBucket->getKey();
+        entry->value = currentBucket->getValue();
+        entries->add(entry);
+      }
+    }
+
+    return entries;
   }
 
   HashResult<T>* get(char* key) {

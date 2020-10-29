@@ -60,6 +60,17 @@ class List {
     return arr;
   }
 
+  T get(int index) {
+    auto current = &this->root;
+    int currentIndex = 0;
+    while (currentIndex != index) {
+      current = (*current)->getNext();
+      currentIndex++;
+    }
+
+    return (*current)->getValue();
+  }
+
   int getLength() { return this->length; }
 
   Node<T>* getRoot() {

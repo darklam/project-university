@@ -1,10 +1,10 @@
 #include "JSONParsing.hpp"
-
+#include "Utils.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <cerrno>
 
-void JSONParsing::parseJSON(const char* path, const char* filename) {
+CameraDTO* JSONParsing::parseJSON(const char* path, const char* filename) {
   FILE* fp;
   char* line = NULL;
   size_t len = 0;
@@ -16,19 +16,37 @@ void JSONParsing::parseJSON(const char* path, const char* filename) {
   }
   bool finished = false;
 
+  auto camera = new CameraDTO();
+
   while (!finished) {
     int length = getline(&line, &len, fp);
     if (length == -1) {
       finished = true;
       continue;
     }
-    printf("%s\n", line);
+    if (Utils::stringContains(line, "{") || Utils::stringContains(line, "}")) {
+      continue;
+    }
+    auto kv = Utils::splitString(line, ":");
+    if (kv->getLength() != 2) {
+      continue;
+    }
+    auto key = kv->get(0);
+    auto value = kv->get(1);
+    if (key == nullptr || value == nullptr) {
+      printf("Something really bad happened\n");
+    }
+    if (!(Utils::stringContains(value, "[") || Utils::stringContains(value, "]") )) {
+      camera->addProperty(key, value);
+    }
   }
 
   fclose(fp);
   if (line != NULL) {
     free(line);
   }
+
+  return camera;
 }
 
 List<CameraDTO*>* JSONParsing::loadData(const char* basePath) {

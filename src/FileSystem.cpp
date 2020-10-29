@@ -57,3 +57,31 @@ List<char*>* FileSystem::listContents(const char* path, char type) {
 
   return l;
 }
+
+List<char*>* FileSystem::getAllFiles(const char* path) {
+  auto result = FileSystem::listContents(path, 'd');
+  List<char*>* files = new List<char*>();
+  for (auto current = result->getRoot(); current != nullptr; current = *(current->getNext())) {
+      auto value = current->getValue();
+      if (value == NULL) {
+          printf("Oof\n");
+          continue;
+      }
+      if (Utils::compareStrings(value, "..") || Utils::compareStrings(value, ".")) {
+          continue;
+      }
+      auto path = FileSystem::join("../datasets/cameras", value);
+      auto currentFiles = FileSystem::listContents(path, 'f');
+      delete[] path;
+      for (auto j = currentFiles->getRoot(); j != nullptr; j = *(j->getNext())) {
+          auto val = j->getValue();
+          files->add(val);
+      }
+      delete currentFiles;
+      delete[] value;
+  }
+
+  delete result;
+
+  return files;
+}
