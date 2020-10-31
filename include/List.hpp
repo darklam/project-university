@@ -12,6 +12,10 @@ class Node {
 
   Node<T>** getNext() { return &(this->next); }
 
+  void setNext(Node<T>* next) {
+    this->next = next;
+  }
+
   Node<T>** getPrevious() { return &(this->previous); }
 
   T getValue() { return this->value; }
@@ -37,13 +41,19 @@ class List {
   }
 
   void add(T value) {
-    Node<T>** current = &this->root;
-    Node<T>* previous = nullptr;
-    while (*current != nullptr) {
-      previous = *current;
-      current = (*current)->getNext();
+    if (this->lastNode == nullptr) {
+      Node<T>** current = &this->root;
+      Node<T>* previous = nullptr;
+      while (*current != nullptr) {
+        previous = *current;
+        current = (*current)->getNext();
+      }
+      *current = new Node<T>(value, previous);
+      this->lastNode = *current;
+    } else {
+      this->lastNode->setNext(new Node<T>(value, this->lastNode));
+      this->lastNode = *(this->lastNode->getNext());
     }
-    *current = new Node<T>(value, previous);
     this->length++;
   }
 
@@ -73,12 +83,11 @@ class List {
 
   int getLength() { return this->length; }
 
-  Node<T>* getRoot() {
-    return this->root;
-  }
+  Node<T>* getRoot() { return this->root; }
 
  private:
   Node<T>* root = nullptr;
+  Node<T>* lastNode = nullptr;
   int length = 0;
 };
 

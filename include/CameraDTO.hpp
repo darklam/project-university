@@ -23,11 +23,15 @@ class CameraDTO {
 
   void addProperty(char* name, char* value);
   void addProperty(char* name, char** value);
+  void setId(char* id);
+
+  char* getId();
 
   HashMap<CameraProperty*>* getProperties();
 
  private:
   char* title;
+  char* id;
   HashMap<CameraProperty*>* properties;
 };
 

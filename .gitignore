@@ -4,3 +4,5 @@ datasets
 bin/**
 !bin/.gitkeep
 .DS_Store
+analysis.txt
+gmon.out

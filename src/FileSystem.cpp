@@ -70,14 +70,16 @@ List<char*>* FileSystem::getAllFiles(const char* path) {
       if (Utils::compareStrings(value, "..") || Utils::compareStrings(value, ".")) {
           continue;
       }
-      auto path = FileSystem::join("../datasets/cameras", value);
-      auto currentFiles = FileSystem::listContents(path, 'f');
-      delete[] path;
+      auto currentPath = FileSystem::join(path, value);
+      auto currentFiles = FileSystem::listContents(currentPath, 'f');
       for (auto j = currentFiles->getRoot(); j != nullptr; j = *(j->getNext())) {
           auto val = j->getValue();
-          files->add(val);
+          auto fullPath = FileSystem::join(currentPath, val);
+          files->add(fullPath);
+          delete[] val;
       }
       delete currentFiles;
+      delete[] currentPath;
       delete[] value;
   }
 

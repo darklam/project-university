@@ -4,8 +4,8 @@
 #include "CameraDTO.hpp"
 #include "List.hpp"
 
-namespace JSONParsing {
-  CameraDTO* parseJSON(const char* path, const char* filename);
+namespace JSON {
+  CameraDTO* parseJSON(const char* path);
   List<CameraDTO*>* loadData(const char* basePath);
 }
 

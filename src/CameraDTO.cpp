@@ -2,6 +2,8 @@
 
 CameraDTO::CameraDTO() {
   this->properties = new HashMap<CameraProperty*>();
+  this->title = nullptr;
+  this->id = nullptr;
 }
 
 void CameraDTO::setTitle(char* title) {
@@ -16,6 +18,14 @@ void CameraDTO::addProperty(char* name, char* value) {
 void CameraDTO::addProperty(char* name, char** value) {
   auto prop = new CameraProperty(value);
   this->properties->set(name, prop);
+}
+
+void CameraDTO::setId(char* id) {
+  this->id = id;
+}
+
+char* CameraDTO::getId() {
+  return this->id;
 }
 
 HashMap<CameraProperty*>* CameraDTO::getProperties() {
