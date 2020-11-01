@@ -6,3 +6,5 @@ bin/**
 .DS_Store
 analysis.txt
 gmon.out
+2013_camera_specs
+*.csv
