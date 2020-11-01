@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <cerrno>
 
-char* getId(List<char*>* params) {
+char* getId(List<char>* params) {
   auto site = params->get(params->getLength() - 2);
   auto id = params->get(params->getLength() - 1);
   auto fin = Utils::append(site, id, "//");
@@ -20,10 +20,6 @@ CameraDTO* JSON::parseJSON(const char* path) {
   Utils::copyString(path, &copy);
   auto params = Utils::splitString(copy, "/");
   auto id = getId(params);
-  for (auto i = params->getRoot(); i != nullptr; i = *(i->getNext())) {
-    auto val = i->getValue();
-    delete[] val;
-  }
   delete params;
   delete[] copy;
   fp = fopen(path, "r");
@@ -67,13 +63,12 @@ CameraDTO* JSON::parseJSON(const char* path) {
   return camera;
 }
 
-List<CameraDTO*>* JSON::loadData(const char* basePath) {
+CustomVector<CameraDTO>* JSON::loadData(const char* basePath) {
   auto files = FileSystem::getAllFiles(basePath);
-  auto cameras = new List<CameraDTO*>();
+  auto cameras = new CustomVector<CameraDTO>(5000);
   for (auto i = files->getRoot(); i != nullptr; i = *(i->getNext())) {
     auto current = i->getValue();
     auto camera = JSON::parseJSON(current);
-    delete[] current;
     cameras->add(camera);
   }
   delete files;

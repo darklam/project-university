@@ -12,13 +12,12 @@ int main() {
   int len = 2048;
   char cwd[len];
   getcwd(cwd, len);
-  auto path = FileSystem::join(cwd, "datasets/cameras");
+  auto path = FileSystem::join(cwd, "datasets/cameras-test");
   auto cameras = JSON::loadData(path);
 
-  for (auto i = cameras->getRoot(); i != nullptr; i = *(i->getNext())) {
-    auto camera = i->getValue();
+  for (int i = 0; i < cameras->getLength(); i++) {
+    auto camera = (*cameras)[i];
     printf("%s\n", camera->getId());
-    delete camera;
   }
   delete cameras;
   return 0;

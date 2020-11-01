@@ -27,12 +27,12 @@ class CameraDTO {
 
   char* getId();
 
-  HashMap<CameraProperty*>* getProperties();
+  HashMap<CameraProperty>* getProperties();
 
  private:
   char* title;
   char* id;
-  HashMap<CameraProperty*>* properties;
+  HashMap<CameraProperty>* properties;
 };
 
 #endif

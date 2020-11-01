@@ -24,10 +24,10 @@ char* FileSystem::join(const char* a, const char* b) {
   return final;
 }
 
-List<char*>* FileSystem::listContents(const char* path, char type) {
+List<char>* FileSystem::listContents(const char* path, char type) {
   DIR* d;
   struct dirent* dir;
-  auto l = new List<char*>();
+  auto l = new List<char>(true);
   d = opendir(path);
   if (d == NULL) {
     printf("Something happened when listing directory %s\n", path);
@@ -58,9 +58,9 @@ List<char*>* FileSystem::listContents(const char* path, char type) {
   return l;
 }
 
-List<char*>* FileSystem::getAllFiles(const char* path) {
+List<char>* FileSystem::getAllFiles(const char* path) {
   auto result = FileSystem::listContents(path, 'd');
-  List<char*>* files = new List<char*>();
+  auto files = new List<char>(true);
   for (auto current = result->getRoot(); current != nullptr; current = *(current->getNext())) {
       auto value = current->getValue();
       if (value == NULL) {
@@ -76,11 +76,9 @@ List<char*>* FileSystem::getAllFiles(const char* path) {
           auto val = j->getValue();
           auto fullPath = FileSystem::join(currentPath, val);
           files->add(fullPath);
-          delete[] val;
       }
       delete currentFiles;
       delete[] currentPath;
-      delete[] value;
   }
 
   delete result;
