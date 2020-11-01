@@ -1,7 +1,25 @@
+#include <unistd.h>
+
 #include <iostream>
-#include "JSONParsing.hpp"
+
+#include "FileSystem.hpp"
+#include "HashMap.hpp"
+#include "JSON.hpp"
+#include "List.hpp"
+#include "Utils.hpp"
 
 int main() {
-    JSONParsing::parseJSON("../datasets/Datasets/2013_camera_specs/buy.net/4233.json");
-    return 0;
+  int len = 2048;
+  char cwd[len];
+  getcwd(cwd, len);
+  auto path = FileSystem::join(cwd, "datasets/cameras");
+  auto cameras = JSON::loadData(path);
+
+  for (auto i = cameras->getRoot(); i != nullptr; i = *(i->getNext())) {
+    auto camera = i->getValue();
+    printf("%s\n", camera->getId());
+    delete camera;
+  }
+  delete cameras;
+  return 0;
 }
