@@ -9,6 +9,7 @@
 #include <cstring>
 #include "Utils.hpp"
 #include "List.hpp"
+#include <iostream>
 
 bool FileSystem::isDirectory(const char* path) {
   struct stat path_stat;
