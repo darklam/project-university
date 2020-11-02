@@ -8,6 +8,7 @@
 #include "List.hpp"
 #include "Utils.hpp"
 #include "CSV.hpp"
+#include "Clique.hpp"
 
 int main() {
   int len = 2048;
@@ -23,12 +24,13 @@ int main() {
   // }
   // delete cameras;
   
-  auto pairs = CSV::loadPairs(path);
-  for (auto i = pairs->getRoot(); i != nullptr; i = *(i->getNext())) { 
-    auto pair = i->getValue();
-    printf("%s  %s\n", pair->getId1(), pair->getId2());
-    delete pair;
-  }
-  delete pairs;
+  // auto pairs = CSV::loadPairs(path);
+  // for (auto i = pairs->getRoot(); i != nullptr; i = *(i->getNext())) { 
+  //   auto pair = i->getValue();
+  //   printf("%s  %s\n", pair->getId1(), pair->getId2());
+  //   delete pair;
+  // }
+  // delete pairs;
+  
   return 0;
 }
