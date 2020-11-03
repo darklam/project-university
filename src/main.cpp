@@ -14,7 +14,7 @@ int main() {
   int len = 2048;
   char cwd[len];
   getcwd(cwd, len);
-  auto path = FileSystem::join(cwd, "y_dataset.csv");
+  //auto path = FileSystem::join(cwd, "y_dataset.csv");
   // auto cameras = JSON::loadData(path);
 
   // for (auto i = cameras->getRoot(); i != nullptr; i = *(i->getNext())) { 
@@ -31,6 +31,6 @@ int main() {
   //   delete pair;
   // }
   // delete pairs;
-  
+
   return 0;
 }

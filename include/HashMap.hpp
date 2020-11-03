@@ -129,8 +129,8 @@ class HashMap {
       Node<Bucket<T>*>* cur = current->getRoot();
       while (cur != nullptr) {
         auto val = cur->getValue();
-        delete val;
         cur = *(cur->getNext());
+        delete val;
       }
       delete current;
     }

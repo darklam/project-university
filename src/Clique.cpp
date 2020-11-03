@@ -2,7 +2,7 @@
 #include "Clique.hpp"
 #include "List.hpp"
 #include "Utils.hpp"
-
+#include <iostream>
 
 Clique::Clique(){
     this->Map = new HashMap<List<char *>*>();
@@ -33,8 +33,8 @@ void Clique::Pair(char* id1, char* id2){
         camera1->value->add(id2);
     }
     this->ConcatLists(camera1->value, camera2->value);
-    this->ConcatLists(camera2->value, camera1->value);
     this->UpdateLists(camera2->value, camera1->value);
+    *camera2->value = *camera1->value;
     delete camera1;
     delete camera2;
 }
@@ -67,7 +67,7 @@ void Clique::UpdateLists(List<char *>* l1, List<char *>* l2){
             printf("Not okie dokie\n");
             exit(EXIT_FAILURE);
         }
-        this->ConcatLists(entry->value, l2);
+        *entry->value = *l2;
         delete entry;
     }
 }
