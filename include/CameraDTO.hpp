@@ -6,13 +6,14 @@
 
 struct CameraProperty {
   bool isArray = false;
-  std::string value = nullptr;
+  std::string value;
   std::string* arrayValue = nullptr;
 
   CameraProperty(std::string value);
   CameraProperty(std::string* value);
   void setValue(std::string value);
   void setValue(std::string* value);
+  ~CameraProperty();
 };
 
 class CameraDTO {

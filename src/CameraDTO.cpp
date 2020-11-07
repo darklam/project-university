@@ -1,9 +1,9 @@
 #include "CameraDTO.hpp"
 
+#include <string>
+
 CameraDTO::CameraDTO() {
   this->properties = new HashMap<CameraProperty*>();
-  this->title = nullptr;
-  this->id = nullptr;
 }
 
 void CameraDTO::setTitle(std::string title) {
@@ -33,6 +33,13 @@ HashMap<CameraProperty*>* CameraDTO::getProperties() {
 }
 
 CameraDTO::~CameraDTO() {
+  auto allProps = this->properties->getEntries();
+  for (auto i = allProps->getRoot(); i != nullptr; i = *(i->getNext())) {
+    auto val = i->getValue();
+    delete val->value;
+    delete val;
+  }
+  delete allProps;
   delete this->properties;
 }
 
@@ -42,6 +49,12 @@ CameraProperty::CameraProperty(std::string value) {
 
 CameraProperty::CameraProperty(std::string* value) {
   this->setValue(value);
+}
+
+CameraProperty::~CameraProperty() {
+  if (this->arrayValue != nullptr) {
+    delete[] this->arrayValue;
+  }
 }
 
 void CameraProperty::setValue(std::string value) {

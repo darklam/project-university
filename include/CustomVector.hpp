@@ -10,9 +10,7 @@ class CustomVector {
     this->chunks = new List<T*>();
   }
 
-  CustomVector() {
-    this->chunks = new List<T*>();
-  }
+  CustomVector() { this->chunks = new List<T*>(); }
 
   void add(T item) {
     int place = this->length++;
@@ -36,15 +34,16 @@ class CustomVector {
     return current[placeInChunk];
   }
 
-  T operator[](int index) {
-    return this->get(index);
-  }
+  T operator[](int index) { return this->get(index); }
 
-  int getLength() {
-    return this->length;
-  }
+  int getLength() { return this->length; }
 
   ~CustomVector() {
+    for (Node<T*>* i = this->chunks->getRoot(); i != nullptr;
+         i = *(i->getNext())) {
+      T* val = i->getValue();
+      delete[] val;
+    }
     delete this->chunks;
   }
 

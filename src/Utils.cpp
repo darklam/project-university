@@ -1,27 +1,24 @@
 #include "Utils.hpp"
-#include "List.hpp"
-#include <cstring>
+
 #include <stdio.h>
+
+#include <cstring>
+#include <sstream>
 #include <string>
 
-List<std::string>* Utils::splitString(std::string str, std::string delimiter) {
-  auto list = new List<std::string>();
-  std::string delimiter = ">=";
+#include "List.hpp"
 
-  size_t pos = 0;
-  size_t startPos = 0;
-  std::string token;
-  auto done = false;
-  while (!done) {
-      pos = str.find(delimiter);
-      if (pos == std::string::npos) {
-        done = true;
-        continue;
-      }
-      token = str.substr(startPos, pos);
-      list->add(token);
-      startPos += (pos + delimiter.length());
-  }
+List<std::string>* Utils::splitString(std::string str,
+                                      std::string delimiter) {
+    auto list = new List<std::string>();
+    std::size_t current, previous = 0;
+    current = str.find(delimiter);
+    while (current != std::string::npos) {
+        list->add(str.substr(previous, current - previous));
+        previous = current + 1;
+        current = str.find(delimiter, previous);
+    }
+    list->add(str.substr(previous, current - previous));
 
-  return list;
+    return list;
 }

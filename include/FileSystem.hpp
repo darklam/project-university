@@ -2,6 +2,7 @@
 #define FILESYSTEM_H
 
 #include "List.hpp"
+#include <string>
 
 namespace FileSystem {
   List<std::string>* listContents(std::string path, char type); // type = 'd' fro directories and 'f' for files

@@ -31,7 +31,7 @@ struct Entry {
 template <typename T>
 class Item {
  public:
-  Item(std::string key, T* value) {
+  Item(std::string key, T value) {
     this->key = key;
     this->value = value;
   }
@@ -51,7 +51,7 @@ template <typename T>
 class HashMap {
  public:
   HashMap() {
-    this->buckets = new List<Item<T>>*[this->bucketSize];
+    this->buckets = new List<Item<T>*>*[this->bucketSize];
     for (int i = 0; i < this->bucketSize; i++) {
       this->buckets[i] = nullptr;
     }
@@ -63,15 +63,15 @@ class HashMap {
       printf("Wow this hash function sucks\n");
       exit(EXIT_FAILURE);
     }
-    List<Item<T>>* bucket = this->buckets[index];
+    List<Item<T>*>* bucket = this->buckets[index];
     if (bucket == nullptr) {
-      this->buckets[index] = new List<Item<T>>();
+      this->buckets[index] = new List<Item<T>*>();
       bucket = this->buckets[index];
     }
-    for (Node<Item<T>>* cur = bucket->getRoot(); cur != nullptr;
+    for (Node<Item<T>*>* cur = bucket->getRoot(); cur != nullptr;
          cur = *(cur->getNext())) {
       Item<T>* val = cur->getValue();
-      if (Utils::compareStrings(val->getKey(), key)) {
+      if (val->getKey().compare(key) == 0) {
         val->setValue(value);
         return;
       }
@@ -79,15 +79,15 @@ class HashMap {
     bucket->add(new Item<T>(key, value));
   }
 
-  List<Entry<T>>* getEntries() {
-    List<Entry<T>>* entries = new List<Entry<T>>();
+  List<Entry<T>*>* getEntries() {
+    List<Entry<T>*>* entries = new List<Entry<T>*>();
     for (int i = 0; i < this->bucketSize; i++) {
       if (this->buckets[i] == nullptr) {
         continue;
       }
 
-      List<Item<T>>* current = this->buckets[i];
-      for (Node<Item<T>>* cur = current->getRoot(); cur != nullptr;
+      List<Item<T>*>* current = this->buckets[i];
+      for (Node<Item<T>*>* cur = current->getRoot(); cur != nullptr;
            cur = *(cur->getNext())) {
         Entry<T>* entry = new Entry<T>();
         Item<T>* currentBucket = cur->getValue();
@@ -106,14 +106,14 @@ class HashMap {
       printf("Wow this hash function sucks\n");
       exit(EXIT_FAILURE);
     }
-    List<Item<T>>* bucket = this->buckets[index];
+    List<Item<T>*>* bucket = this->buckets[index];
     if (bucket == nullptr) {
       return new HashResult<T>();
     }
     for (auto current = bucket->getRoot(); current != nullptr;
          current = *(current->getNext())) {
       auto value = current->getValue();
-      if (Utils::compareStrings(key, value->getKey())) {
+      if (key.compare(value->getKey())) {
         auto val = value->getValue();
         return new HashResult<T>(val);
       }
@@ -123,14 +123,13 @@ class HashMap {
 
   ~HashMap() {
     for (int i = 0; i < this->bucketSize; i++) {
-      List<Item<T>>* current = this->buckets[i];
+      List<Item<T>*>* current = this->buckets[i];
       if (current == nullptr) {
         continue;
       }
-      Node<Item<T>>* cur = current->getRoot();
-      while (cur != nullptr) {
-        Item<T>* val = cur->getValue();
-        cur = *(cur->getNext());
+      for (Node<Item<T>*>* i = current->getRoot(); i != nullptr; i = *(i->getNext())) {
+        Item<T>* val = i->getValue();
+        delete val;
       }
       delete current;
     }
@@ -138,7 +137,7 @@ class HashMap {
   }
 
  private:
-  List<Item<T>>** buckets;
+  List<Item<T>*>** buckets;
   unsigned long bucketSize = 200;
   unsigned long hashFunc(std::string key) {
     int len = key.length();
