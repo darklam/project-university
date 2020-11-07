@@ -13,8 +13,8 @@ bool Utils::compareStrings(const char* a, const char* b) {
   return result == 0;
 }
 
-List<char*>* Utils::splitString(char* str, const char* delimiter) {
-  auto list = new List<char*>();
+List<char>* Utils::splitString(char* str, const char* delimiter) {
+  auto list = new List<char>(true);
 
   auto token = strtok(str, delimiter);
   // we copy the string because otherwise it is just a substring of the str argument

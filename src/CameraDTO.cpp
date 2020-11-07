@@ -1,7 +1,7 @@
 #include "CameraDTO.hpp"
 
 CameraDTO::CameraDTO() {
-  this->properties = new HashMap<CameraProperty*>();
+  this->properties = new HashMap<CameraProperty>(false);
   this->title = nullptr;
   this->id = nullptr;
 }
@@ -28,7 +28,7 @@ char* CameraDTO::getId() {
   return this->id;
 }
 
-HashMap<CameraProperty*>* CameraDTO::getProperties() {
+HashMap<CameraProperty>* CameraDTO::getProperties() {
   return this->properties;
 }
 
@@ -36,8 +36,9 @@ CameraDTO::~CameraDTO() {
   if (this->title != nullptr) {
     delete[] this->title;
   }
-
-  
+  if (this->id != nullptr) {
+    delete[] this->id;
+  }
 
   delete this->properties;
 }
