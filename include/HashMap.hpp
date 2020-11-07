@@ -140,13 +140,14 @@ class HashMap {
   List<Item<T>*>** buckets;
   unsigned long bucketSize = 200;
   unsigned long hashFunc(std::string key) {
-    int len = key.length();
-    unsigned long sum = 0;
-    for (int i = 0; i < len; i++) {
-      sum += (int)key[i];
-    }
+    unsigned long hash = 5381;
+    auto str = key.c_str();
+    int c;
 
-    return sum % this->bucketSize;
+    while (c = *str++)
+        hash = ((hash << 5) + hash) + c;
+
+    return hash % this->bucketSize;
   }
 };
 
