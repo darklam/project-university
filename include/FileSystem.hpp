@@ -4,10 +4,10 @@
 #include "List.hpp"
 
 namespace FileSystem {
-  List<char>* listContents(const char* path, char type); // type = 'd' fro directories and 'f' for files
-  bool isDirectory(const char* path);
-  char* join(const char* a, const char* b);
-  List<char>* getAllFiles(const char* path);
+  List<std::string>* listContents(std::string path, char type); // type = 'd' fro directories and 'f' for files
+  bool isDirectory(std::string path);
+  std::string join(std::string a, std::string b);
+  List<std::string>* getAllFiles(std::string path);
 }
 
 #endif

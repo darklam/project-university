@@ -4,27 +4,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cerrno>
+#include <iostream>
+#include <string>
 
-char* getId(List<char>* params) {
+std::string getId(List<std::string>* params) {
   auto site = params->get(params->getLength() - 2);
   auto id = params->get(params->getLength() - 1);
-  auto fin = Utils::append(site, id, "//");
+  std::string fin;
+  auto pointPos = id.find(".");
+  auto actualId = id.substr(0, pointPos);
+  fin.append(site).append("//").append(actualId);
   return fin;
 }
 
-CameraDTO* JSON::parseJSON(const char* path) {
+CameraDTO* JSON::parseJSON(std::string path) {
   FILE* fp;
-  char* line = NULL;
+  std::string line = NULL;
   size_t len = 0;
-  char* copy;
-  Utils::copyString(path, &copy);
-  auto params = Utils::splitString(copy, "/");
+  auto params = Utils::splitString(path, "/");
   auto id = getId(params);
   delete params;
-  delete[] copy;
-  fp = fopen(path, "r");
+  fp = fopen(path.c_str(), "r");
   if (fp == NULL) {
-    printf("Welp something was not okie dokie, errno: %d\n", errno);
+    std::cout << "Welp something was not okie dokie, errno: " << errno << std::endl;
     exit(EXIT_FAILURE);
   }
   bool finished = false;
@@ -33,7 +35,7 @@ CameraDTO* JSON::parseJSON(const char* path) {
   camera->setId(id);
 
   while (!finished) {
-    int length = getline(&line, &len, fp);
+    int length = std::getline(&line, &len, fp);
     if (length == -1) {
       finished = true;
       continue;

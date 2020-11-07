@@ -1,62 +1,55 @@
 #include "CameraDTO.hpp"
 
 CameraDTO::CameraDTO() {
-  this->properties = new HashMap<CameraProperty>(false);
+  this->properties = new HashMap<CameraProperty*>();
   this->title = nullptr;
   this->id = nullptr;
 }
 
-void CameraDTO::setTitle(char* title) {
+void CameraDTO::setTitle(std::string title) {
   this->title = title;
 }
 
-void CameraDTO::addProperty(char* name, char* value) {
+void CameraDTO::addProperty(std::string name, std::string value) {
   auto prop = new CameraProperty(value);
   this->properties->set(name, prop);
 }
 
-void CameraDTO::addProperty(char* name, char** value) {
+void CameraDTO::addProperty(std::string name, std::string* value) {
   auto prop = new CameraProperty(value);
   this->properties->set(name, prop);
 }
 
-void CameraDTO::setId(char* id) {
+void CameraDTO::setId(std::string id) {
   this->id = id;
 }
 
-char* CameraDTO::getId() {
+std::string CameraDTO::getId() {
   return this->id;
 }
 
-HashMap<CameraProperty>* CameraDTO::getProperties() {
+HashMap<CameraProperty*>* CameraDTO::getProperties() {
   return this->properties;
 }
 
 CameraDTO::~CameraDTO() {
-  if (this->title != nullptr) {
-    delete[] this->title;
-  }
-  if (this->id != nullptr) {
-    delete[] this->id;
-  }
-
   delete this->properties;
 }
 
-CameraProperty::CameraProperty(char* value) {
+CameraProperty::CameraProperty(std::string value) {
   this->setValue(value);
 }
 
-CameraProperty::CameraProperty(char** value) {
+CameraProperty::CameraProperty(std::string* value) {
   this->setValue(value);
 }
 
-void CameraProperty::setValue(char* value) {
+void CameraProperty::setValue(std::string value) {
   this->value = value;
   this->isArray = false;
 }
 
-void CameraProperty::setValue(char** value) {
+void CameraProperty::setValue(std::string* value) {
   this->arrayValue = value;
   this->isArray = true;
 }

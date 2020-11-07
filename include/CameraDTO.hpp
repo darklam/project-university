@@ -2,16 +2,17 @@
 #define CAMERA_DTO
 
 #include "HashMap.hpp"
+#include <string>
 
 struct CameraProperty {
   bool isArray = false;
-  char* value = nullptr;
-  char** arrayValue = nullptr;
+  std::string value = nullptr;
+  std::string* arrayValue = nullptr;
 
-  CameraProperty(char* value);
-  CameraProperty(char** value);
-  void setValue(char* value);
-  void setValue(char** value);
+  CameraProperty(std::string value);
+  CameraProperty(std::string* value);
+  void setValue(std::string value);
+  void setValue(std::string* value);
 };
 
 class CameraDTO {
@@ -19,20 +20,20 @@ class CameraDTO {
   CameraDTO();
   ~CameraDTO();
 
-  void setTitle(char* title);
+  void setTitle(std::string title);
 
-  void addProperty(char* name, char* value);
-  void addProperty(char* name, char** value);
-  void setId(char* id);
+  void addProperty(std::string name, std::string value);
+  void addProperty(std::string name, std::string* value);
+  void setId(std::string id);
 
-  char* getId();
+  std::string getId();
 
-  HashMap<CameraProperty>* getProperties();
+  HashMap<CameraProperty*>* getProperties();
 
  private:
-  char* title;
-  char* id;
-  HashMap<CameraProperty>* properties;
+  std::string title;
+  std::string id;
+  HashMap<CameraProperty*>* properties;
 };
 
 #endif

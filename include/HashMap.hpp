@@ -6,6 +6,7 @@
 #include <cstring>
 #include "List.hpp"
 #include "Utils.hpp"
+#include <string>
 
 template <typename T>
 struct HashResult {
@@ -23,49 +24,40 @@ struct HashResult {
 
 template <typename T>
 struct Entry {
-  char* key;
+  std::string key;
   T value;
 };
 
 template <typename T>
 class Item {
  public:
-  Item(char* key, T* value) {
+  Item(std::string key, T* value) {
     this->key = key;
     this->value = value;
   }
 
-  char* getKey() { return this->key; }
+  std::string getKey() { return this->key; }
 
-  T* getValue() { return this->value; }
+  T getValue() { return this->value; }
 
-  void setValue(T* value) { this->value = value; }
-
-  void cleanUp(bool isArray) {
-    if (isArray) {
-      delete[] this->value;
-    } else {
-      delete this->value;
-    }
-  }
+  void setValue(T value) { this->value = value; }
 
  private:
-  char* key;
-  T* value;
+  std::string key;
+  T value;
 };
 
 template <typename T>
 class HashMap {
  public:
-  HashMap(bool isArray) {
+  HashMap() {
     this->buckets = new List<Item<T>>*[this->bucketSize];
     for (int i = 0; i < this->bucketSize; i++) {
       this->buckets[i] = nullptr;
     }
-    this->isArray = isArray;
   }
 
-  void set(char* key, T* value) {
+  void set(std::string key, T value) {
     unsigned long index = this->hashFunc(key);
     if (index >= this->bucketSize) {
       printf("Wow this hash function sucks\n");
@@ -108,7 +100,7 @@ class HashMap {
     return entries;
   }
 
-  HashResult<T>* get(char* key) {
+  HashResult<T>* get(std::string key) {
     unsigned long index = this->hashFunc(key);
     if (index >= this->bucketSize) {
       printf("Wow this hash function sucks\n");
@@ -138,7 +130,6 @@ class HashMap {
       Node<Item<T>>* cur = current->getRoot();
       while (cur != nullptr) {
         Item<T>* val = cur->getValue();
-        val->cleanUp(this->isArray);
         cur = *(cur->getNext());
       }
       delete current;
@@ -149,8 +140,8 @@ class HashMap {
  private:
   List<Item<T>>** buckets;
   unsigned long bucketSize = 200;
-  unsigned long hashFunc(char* key) {
-    int len = strlen(key);
+  unsigned long hashFunc(std::string key) {
+    int len = key.length();
     unsigned long sum = 0;
     for (int i = 0; i < len; i++) {
       sum += (int)key[i];
@@ -158,7 +149,6 @@ class HashMap {
 
     return sum % this->bucketSize;
   }
-  bool isArray = false;
 };
 
 #endif

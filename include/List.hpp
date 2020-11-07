@@ -4,8 +4,8 @@
 template <typename T>
 class Node {
  public:
-  Node(T* value) { this->value = value; }
-  Node(T* value, Node<T>* previous) {
+  Node(T value) { this->value = value; }
+  Node(T value, Node<T>* previous) {
     this->value = value;
     this->previous = previous;
   }
@@ -18,18 +18,10 @@ class Node {
 
   Node<T>** getPrevious() { return &(this->previous); }
 
-  T* getValue() { return this->value; }
-
-  void clear(bool isArray) {
-    if (isArray) {
-      delete[] this->value;
-    } else {
-      delete this->value;
-    }
-  }
+  T getValue() { return this->value; }
 
  private:
-  T* value;
+  T value;
   Node<T>* next = nullptr;
   Node<T>* previous = nullptr;
 };
@@ -37,23 +29,17 @@ class Node {
 template <typename T>
 class List {
  public:
-  List() {}
-
-  List(bool isArray) {
-    this->isArray = true;
-  }
 
   ~List() {
     Node<T>* current = this->root;
     while (current != nullptr) {
       auto next = *(current->getNext());
-      current->clear(this->isArray);
       delete current;
       current = next;
     }
   }
 
-  void add(T* value) {
+  void add(T value) {
     if (this->lastNode == nullptr) {
       Node<T>** current = &this->root;
       Node<T>* previous = nullptr;
@@ -70,7 +56,7 @@ class List {
     this->length++;
   }
 
-  T* get(int index) {
+  T get(int index) {
     auto current = &this->root;
     int currentIndex = 0;
     while (currentIndex != index) {
@@ -89,7 +75,6 @@ class List {
   Node<T>* root = nullptr;
   Node<T>* lastNode = nullptr;
   int length = 0;
-  bool isArray = false;
 };
 
 #endif
