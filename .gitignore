@@ -8,3 +8,4 @@ analysis.txt
 gmon.out
 camera_specs
 *.csv
+*.py

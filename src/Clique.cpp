@@ -4,12 +4,15 @@
 #include "Utils.hpp"
 #include <iostream>
 
+
 Clique::Clique(){
     this->Map = new HashMap<List<char *>*>();
+    this->Stack = new List<List<char *>*>();
 }
 
 Clique::~Clique(){
     delete this->Map;
+    //this->DeleteStack();
 }
 
 void Clique::Add(char* id){
@@ -18,6 +21,7 @@ void Clique::Add(char* id){
         auto list = new List<char *>();
         list->add(id);
         this->Map->set(id, list);
+        this->AddToStack(list);
     }
     delete entry;
 }
@@ -39,7 +43,7 @@ void Clique::Pair(char* id1, char* id2){
     delete camera2;
 }
 
-List<Entry<List<char*>*>*>* Clique::getEntries(){
+Llist Clique::getEntries(){
     return this->Map->getEntries();
 }
 
@@ -70,4 +74,16 @@ void Clique::UpdateLists(List<char *>* l1, List<char *>* l2){
         *entry->value = *l2;
         delete entry;
     }
+}
+
+void Clique::AddToStack(List<char*>* value){
+    this->Stack->add(value);
+}
+
+void Clique::DeleteStack(){
+    for (auto i = this->Stack->getRoot(); i != nullptr; i = *(i->getNext())) { 
+        auto list = i->getValue();
+        delete list;
+    }
+    delete this->Stack;
 }
