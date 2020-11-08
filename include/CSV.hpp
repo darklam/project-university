@@ -3,26 +3,25 @@
 #include "List.hpp"
 #include <string>
 #include "Clique.hpp"
+#include <string>
+#include "CustomVector.hpp"
 
 struct Pair{
-    char* id1;
-    char* id2;
+    std::string id1;
+    std::string id2;
     int value;
-    Pair();
-    ~Pair();
-    void setIds(char *, char*);
-    char* getId1();
-    char* getId2();
+    void setIds(std::string, std::string);
+    std::string getId1();
+    std::string getId2();
     void setValue(int);
     int getMatch();
 };
 
 namespace CSV {
-    List<Pair*>* ReadCSV(const char* path);
-    void WriteCSV(Llist);
-    bool ExistsInList(List<std::string>* , std::string);
+    CustomVector<Pair*>* ReadCSV(const std::string& path);
+    void WriteCSV(std::string, Llist);
+    bool Exists(List<std::string>* , std::string);
     List<std::string>* CreateFileList(Llist);
-    // void SortList(List<char*>*);
 }
 
 #endif

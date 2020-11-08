@@ -113,7 +113,7 @@ class HashMap {
     for (auto current = bucket->getRoot(); current != nullptr;
          current = *(current->getNext())) {
       auto value = current->getValue();
-      if (key.compare(value->getKey())) {
+      if (key.compare(value->getKey()) == 0) {
         auto val = value->getValue();
         return new HashResult<T>(val);
       }
