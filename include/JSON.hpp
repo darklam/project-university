@@ -6,8 +6,8 @@
 #include "CustomVector.hpp"
 
 namespace JSON {
-  CameraDTO* parseJSON(std::string path);
-  CustomVector<CameraDTO*>* loadData(std::string basePath);
+  CameraDTO* parseJSON(const std::string& path);
+  CustomVector<CameraDTO*>* loadData(const std::string& basePath);
 }
 
 #endif

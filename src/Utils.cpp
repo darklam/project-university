@@ -8,8 +8,8 @@
 
 #include "List.hpp"
 
-List<std::string>* Utils::splitString(std::string str,
-                                      std::string delimiter) {
+List<std::string>* Utils::splitString(const std::string& str,
+                                      const std::string& delimiter) {
     auto list = new List<std::string>();
     std::size_t current, previous = 0;
     current = str.find(delimiter);

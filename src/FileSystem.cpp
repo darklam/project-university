@@ -12,19 +12,19 @@
 #include <string>
 #include <iostream>
 
-bool FileSystem::isDirectory(std::string path) {
+bool FileSystem::isDirectory(const std::string& path) {
   struct stat path_stat;
   stat(path.c_str(), &path_stat);
   return !S_ISREG(path_stat.st_mode);
 }
 
-std::string FileSystem::join(std::string a, std::string b) {
+std::string FileSystem::join(const std::string& a, const std::string& b) {
   std::string fin;
   fin.append(a).append("/").append(b);
   return fin;
 }
 
-List<std::string>* FileSystem::listContents(std::string path, char type) {
+List<std::string>* FileSystem::listContents(const std::string& path, char type) {
   DIR* d;
   struct dirent* dir;
   auto l = new List<std::string>();
@@ -56,7 +56,7 @@ List<std::string>* FileSystem::listContents(std::string path, char type) {
   return l;
 }
 
-List<std::string>* FileSystem::getAllFiles(std::string path) {
+List<std::string>* FileSystem::getAllFiles(const std::string& path) {
   auto result = FileSystem::listContents(path, 'd');
   auto files = new List<std::string>();
   for (auto current = result->getRoot(); current != nullptr; current = *(current->getNext())) {

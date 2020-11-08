@@ -20,7 +20,7 @@ std::string getId(List<std::string>* params) {
   return fin;
 }
 
-CameraDTO* JSON::parseJSON(std::string path) {
+CameraDTO* JSON::parseJSON(const std::string& path) {
   FILE* fp;
   size_t len = 0;
   auto params = Utils::splitString(path, "/");
@@ -71,7 +71,7 @@ CameraDTO* JSON::parseJSON(std::string path) {
   return camera;
 }
 
-CustomVector<CameraDTO*>* JSON::loadData(std::string basePath) {
+CustomVector<CameraDTO*>* JSON::loadData(const std::string& basePath) {
   auto files = FileSystem::getAllFiles(basePath);
   auto cameras = new CustomVector<CameraDTO*>(5000);
   auto count = 0;

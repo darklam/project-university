@@ -5,7 +5,7 @@
 #include <string>
 
 namespace Utils {
-  List<std::string>* splitString(std::string str, std::string delimiter);
+  List<std::string>* splitString(const std::string& str, const std::string& delimiter);
 }
 
 #endif

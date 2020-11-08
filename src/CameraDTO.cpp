@@ -6,21 +6,21 @@ CameraDTO::CameraDTO() {
   this->properties = new HashMap<CameraProperty*>();
 }
 
-void CameraDTO::setTitle(std::string title) {
+void CameraDTO::setTitle(const std::string& title) {
   this->title = title;
 }
 
-void CameraDTO::addProperty(std::string name, std::string value) {
+void CameraDTO::addProperty(const std::string& name, const std::string& value) {
   auto prop = new CameraProperty(value);
   this->properties->set(name, prop);
 }
 
-void CameraDTO::addProperty(std::string name, std::string* value) {
+void CameraDTO::addProperty(const std::string& name, std::string* value) {
   auto prop = new CameraProperty(value);
   this->properties->set(name, prop);
 }
 
-void CameraDTO::setId(std::string id) {
+void CameraDTO::setId(const std::string& id) {
   this->id = id;
 }
 
@@ -43,7 +43,7 @@ CameraDTO::~CameraDTO() {
   delete this->properties;
 }
 
-CameraProperty::CameraProperty(std::string value) {
+CameraProperty::CameraProperty(const std::string& value) {
   this->setValue(value);
 }
 
@@ -57,7 +57,7 @@ CameraProperty::~CameraProperty() {
   }
 }
 
-void CameraProperty::setValue(std::string value) {
+void CameraProperty::setValue(const std::string& value) {
   this->value = value;
   this->isArray = false;
 }
