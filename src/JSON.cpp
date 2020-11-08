@@ -10,9 +10,9 @@
 #include "FileSystem.hpp"
 #include "Utils.hpp"
 
-std::string getId(List<std::string>* params) {
-  auto site = params->get(params->getLength() - 2);
-  auto id = params->get(params->getLength() - 1);
+std::string getId(CustomVector<std::string>* params) {
+  auto site = (*params)[params->getLength() - 2];
+  auto id = (*params)[params->getLength() - 1];
   std::string fin;
   auto pointPos = id.find(".");
   auto actualId = id.substr(0, pointPos);

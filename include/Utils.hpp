@@ -1,11 +1,11 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "List.hpp"
+#include "CustomVector.hpp"
 #include <string>
 
 namespace Utils {
-  List<std::string>* splitString(const std::string& str, const std::string& delimiter);
+  CustomVector<std::string>* splitString(const std::string& str, const std::string& delimiter);
 }
 
 #endif
