@@ -33,33 +33,25 @@ int Pair::getMatch(){
 
 
 CustomVector<Pair*>* CSV::ReadCSV(const std::string& path){
-    FILE* fp;
-    char* line;
-    size_t len = 0;
-    fp = fopen(path.c_str(), "r");
-    if (fp == NULL) {
-        printf("Welp something was not okie dokie, errno: %d\n", errno);
+    std::ifstream file(path);
+    std::string line;
+    auto pairs = new CustomVector<Pair*>(10000);
+    if (file.bad()) {
+        printf("Welp something was not okie dokie, file: %s\n", path.c_str());
         exit(EXIT_FAILURE);
     }
-  
-    bool finished = false;
-    auto pairs = new CustomVector<Pair*>(10000);
     int isFisrtLine = true;
-    while(!finished){
-        auto pair = new Pair();
-        int length = getline(&line, &len, fp);
-        if(length == -1){
-            finished = true;
-            continue;
-        }   
+    while (std::getline(file, line)) {
         if(isFisrtLine){
             isFisrtLine = false;
             continue;
         }
+        auto pair = new Pair();
         auto line_pair = Utils::splitString(std::string(line), ",");
         auto id1 = line_pair->get(0);
         auto id2 = line_pair->get(1);
         int matches = atoi(line_pair->get(2).c_str());
+        delete line_pair;
         if (id1.length() == 0 || id2.length() == 0) {
             printf("Something really bad happened\n");
         }
@@ -67,10 +59,8 @@ CustomVector<Pair*>* CSV::ReadCSV(const std::string& path){
         pair->setIds(id1,id2);
         pairs->add(pair);
     }
-    fclose(fp);
-    if (line != NULL) {
-        free(line);
-    }
+    file.close();
+
     return pairs;
 }
 

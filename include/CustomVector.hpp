@@ -9,6 +9,9 @@ class CustomVector {
   CustomVector(int chunkSize) {
     this->chunkSize = chunkSize;
     this->chunks = new List<T*>();
+    this->lastUsed = new T[this->chunkSize];
+    this->lastUsedPlace = 0;
+    this->chunks->add(this->lastUsed);
   }
 
   CustomVector() { 
