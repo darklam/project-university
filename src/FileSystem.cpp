@@ -9,29 +9,28 @@
 #include <cstring>
 #include "Utils.hpp"
 #include "List.hpp"
+#include <string>
 #include <iostream>
 
-bool FileSystem::isDirectory(const char* path) {
+bool FileSystem::isDirectory(const std::string& path) {
   struct stat path_stat;
-  stat(path, &path_stat);
+  stat(path.c_str(), &path_stat);
   return !S_ISREG(path_stat.st_mode);
 }
 
-char* FileSystem::join(const char* a, const char* b) {
-  int len = strlen(a) + strlen(b) +
-            2;  // 2 because the / and the null terminator ain't free
-  auto final = new char[len];
-  sprintf(final, "%s/%s", a, b);
-  return final;
+std::string FileSystem::join(const std::string& a, const std::string& b) {
+  std::string fin;
+  fin.append(a).append("/").append(b);
+  return fin;
 }
 
-List<char*>* FileSystem::listContents(const char* path, char type) {
+List<std::string>* FileSystem::listContents(const std::string& path, char type) {
   DIR* d;
   struct dirent* dir;
-  auto l = new List<char*>();
-  d = opendir(path);
+  auto l = new List<std::string>();
+  d = opendir(path.c_str());
   if (d == NULL) {
-    printf("Something happened when listing directory %s\n", path);
+    std::cout << "Something happened when listing directory " << path << std::endl;
     exit(EXIT_FAILURE);
   }
   auto finished = false;
@@ -47,11 +46,9 @@ List<char*>* FileSystem::listContents(const char* path, char type) {
     if (type == 'f') {
       check = !check; // If we want files, we reverse the check
     }
-    delete[] p;
     if (check) {
-      char* cur;
-      Utils::copyString(dir->d_name, &cur);
-      l->add(cur);
+      auto curr = std::string(dir->d_name);
+      l->add(curr);
     }
   }
   closedir(d);
@@ -59,16 +56,12 @@ List<char*>* FileSystem::listContents(const char* path, char type) {
   return l;
 }
 
-List<char*>* FileSystem::getAllFiles(const char* path) {
+List<std::string>* FileSystem::getAllFiles(const std::string& path) {
   auto result = FileSystem::listContents(path, 'd');
-  List<char*>* files = new List<char*>();
+  auto files = new List<std::string>();
   for (auto current = result->getRoot(); current != nullptr; current = *(current->getNext())) {
       auto value = current->getValue();
-      if (value == NULL) {
-          printf("Oof\n");
-          continue;
-      }
-      if (Utils::compareStrings(value, "..") || Utils::compareStrings(value, ".")) {
+      if (value.compare("..") == 0 || value.compare(".") == 0) {
           continue;
       }
       auto currentPath = FileSystem::join(path, value);
@@ -77,11 +70,8 @@ List<char*>* FileSystem::getAllFiles(const char* path) {
           auto val = j->getValue();
           auto fullPath = FileSystem::join(currentPath, val);
           files->add(fullPath);
-          delete[] val;
       }
       delete currentFiles;
-      delete[] currentPath;
-      delete[] value;
   }
 
   delete result;

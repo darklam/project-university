@@ -1,6 +1,9 @@
 #ifndef LIST_H
 #define LIST_H
 
+#include <iostream>
+#include <cerrno>
+
 template <typename T>
 class Node {
  public:
@@ -12,9 +15,7 @@ class Node {
 
   Node<T>** getNext() { return &(this->next); }
 
-  void setNext(Node<T>* next) {
-    this->next = next;
-  }
+  void setNext(Node<T>* next) { this->next = next; }
 
   Node<T>** getPrevious() { return &(this->previous); }
 
@@ -29,8 +30,6 @@ class Node {
 template <typename T>
 class List {
  public:
-  List() {}
-
   ~List() {
     Node<T>* current = this->root;
     while (current != nullptr) {
@@ -57,20 +56,12 @@ class List {
     this->length++;
   }
 
-  T* toArray() {
-    T* arr = new T[this->length];
-    Node<T>** current = &this->root;
-    int index = 0;
-    while (*current != nullptr) {
-      arr[index] = (*current)->getValue();
-
-      current = (*current)->getNext();
-      index++;
-    }
-    return arr;
-  }
-
   T get(int index) {
+    if (index >= this->length) {
+      std::cout << "Invalid list access. Length " << this->length
+                << ", index: " << index << std::endl;
+      exit(EXIT_FAILURE);
+    }
     auto current = &this->root;
     int currentIndex = 0;
     while (currentIndex != index) {

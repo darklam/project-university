@@ -1,40 +1,24 @@
 #include "Utils.hpp"
-#include "List.hpp"
-#include <cstring>
+
 #include <stdio.h>
 
-void Utils::copyString(const char* src, char** dest) {
-  *dest = new char[strlen(src) + 1]; // +1 for the null terminator and to sleep calmly today
-  strcpy(*dest, src);
-}
+#include <cstring>
+#include <sstream>
+#include <string>
 
-bool Utils::compareStrings(const char* a, const char* b) {
-  int result = strcmp(a, b);
-  return result == 0;
-}
+#include "CustomVector.hpp"
 
-List<char*>* Utils::splitString(char* str, const char* delimiter) {
-  auto list = new List<char*>();
+CustomVector<std::string>* Utils::splitString(const std::string& str,
+                                      const std::string& delimiter) {
+    auto vec = new CustomVector<std::string>(5);
+    std::size_t current, previous = 0;
+    current = str.find(delimiter);
+    while (current != std::string::npos) {
+        vec->add(str.substr(previous, current - previous));
+        previous = current + 1;
+        current = str.find(delimiter, previous);
+    }
+    vec->add(str.substr(previous, current - previous));
 
-  auto token = strtok(str, delimiter);
-  // we copy the string because otherwise it is just a substring of the str argument
-  // and things can get very damn ugly
-  while (token != nullptr) {
-    char* copy;
-    Utils::copyString(token, &copy);
-    list->add(copy);
-    token = strtok(nullptr, delimiter);
-  }
-
-  return list;
-}
-
-bool Utils::stringContains(char* str, const char* search) {
-  return strstr(str, search) != nullptr;
-}
-
-char* Utils::append(char* a, char* b, char* between) {
-  auto fin = new char[strlen(a) + strlen(b) + strlen(between) + 1];
-  sprintf(fin, "%s%s%s", a, between, b);
-  return fin;
+    return vec;
 }
