@@ -71,7 +71,7 @@ class HashMap {
     for (Node<Item<T>*>* cur = bucket->getRoot(); cur != nullptr;
          cur = *(cur->getNext())) {
       Item<T>* val = cur->getValue();
-      if (val->getKey().compare(key) == 0) {
+      if (val->getKey() == key) {
         val->setValue(value);
         return;
       }
@@ -113,7 +113,7 @@ class HashMap {
     for (auto current = bucket->getRoot(); current != nullptr;
          current = *(current->getNext())) {
       auto value = current->getValue();
-      if (key.compare(value->getKey())) {
+      if (key == value->getKey()) {
         auto val = value->getValue();
         return new HashResult<T>(val);
       }
