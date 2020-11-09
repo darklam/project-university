@@ -22,3 +22,13 @@ CustomVector<std::string>* Utils::splitString(const std::string& str,
 
     return vec;
 }
+
+void Utils::splitStringLite(const std::string& str, const std::string& delim, std::string* tokens, int len){
+    std::size_t current, previous = 0;
+    current = str.find(",");
+    for(int i = 0; i < len; i++){
+        tokens[i] = str.substr(previous, current - previous);
+        previous = current + 1;
+        current = current = str.find(",", previous);
+    }
+}

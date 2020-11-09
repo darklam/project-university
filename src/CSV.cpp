@@ -47,16 +47,18 @@ CustomVector<Pair*>* CSV::ReadCSV(const std::string& path){
             continue;
         }
         auto pair = new Pair();
-        auto line_pair = Utils::splitString(std::string(line), ",");
-        auto id1 = line_pair->get(0);
-        auto id2 = line_pair->get(1);
-        int matches = atoi(line_pair->get(2).c_str());
-        delete line_pair;
-        if (id1.length() == 0 || id2.length() == 0) {
+        // auto line_pair = Utils::splitString(std::string(line), ",");
+        // auto id1 = line_pair->get(0);
+        // auto id2 = line_pair->get(1);
+        // int matches = atoi(line_pair->get(2).c_str());
+        std::string tokens[3];
+        Utils::splitStringLite(line, ";", tokens, 3);
+        //delete line_pair;
+        if (tokens[0].length() == 0 || tokens[1].length() == 0) {
             printf("Something really bad happened\n");
         }
-        pair->setValue(matches);
-        pair->setIds(id1,id2);
+        pair->setValue(atoi(tokens[2].c_str()));
+        pair->setIds(tokens[0],tokens[1]);
         pairs->add(pair);
     }
     file.close();
