@@ -11,19 +11,7 @@
 #include "Set.hpp"
 #include "Utils.hpp"
 
-
-
-int main() {
-  int len = 2048;
-  char cwd[len];
-  getcwd(cwd, len);
-  clock_t begin = clock();
-  auto path = FileSystem::join(cwd, "W_Dataset.csv");
-  auto clique = new Clique();
-  auto pairs = CSV::ReadCSV(path);
-
-  HashMap<Set*> map;
-
+void PairsToClique(CustomVector<Pair *> * pairs, Clique* clique){
   for (auto i = 0; i < pairs->getLength(); i++) {
     auto pair = (*pairs)[i];
     if (pair->value == 0) {
@@ -31,35 +19,34 @@ int main() {
     }
     clique->Pair(pair->getId1(), pair->getId2());
   }
+}
 
-  auto res = clique->getEntries();
-  printf("exw mpei\n");
+List<Entry<Set*>*>* RemoveDup(List<Entry<Set*>*>* entries){
   HashMap<Set*> dedupe;
-  for (auto j = res->getRoot(); j != nullptr; j = *(j->getNext())) {
+  for (auto j = entries->getRoot(); j != nullptr; j = *(j->getNext())) {
     auto val = j->getValue();
     auto item = val->value;
     std::string key = std::to_string((intptr_t) item);
     dedupe.set(key, item);
     delete val;
   }
-  delete res;
+  return dedupe.getEntries();
+}
 
-  auto unique = dedupe.getEntries();
-  for (auto i = unique->getRoot(); i != nullptr; i = *(i->getNext())) {
-    auto cur = i->getValue();
-    auto item = cur->value;
-    auto items = item->getItems();
-    for (auto i = items->getRoot(); i != nullptr; i = *(i->getNext())) {
-      auto val = i->getValue();
-      std::cout << val->value << ",";
-      delete val;
-    }
-    std::cout << std::endl;
-    delete cur;
-  }
-
-  delete unique;
-
+int main() {
+  int len = 2048;
+  char cwd[len];
+  getcwd(cwd, len);
+  clock_t begin = clock();
+  auto path = FileSystem::join(cwd, "Y_Dataset.csv");
+  auto clique = new Clique();
+  auto pairs = CSV::ReadCSV(path);
+  PairsToClique(pairs, clique);
+  auto entries = clique->getEntries();
+  auto unique = RemoveDup(entries);
+  delete entries;
+  auto file = FileSystem::join(cwd, "Y_Out_Pairs.csv");
+  CSV::WriteCSVPairs(file, unique);
   for (auto i = 0; i < pairs->getLength(); i++) {
     auto pair = (*pairs)[i];
     delete pair;

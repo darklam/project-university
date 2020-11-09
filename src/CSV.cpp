@@ -66,49 +66,52 @@ CustomVector<Pair*>* CSV::ReadCSV(const std::string& path){
     return pairs;
 }
 
-// bool CSV::Exists(List<std::string>* list, std::string key){
-//     for (auto i = list->getRoot(); i != nullptr; i = *(i->getNext())) { 
-//         auto item = i->getValue();
-//         if(item.compare(key) == 0) return true;
-//     }
-//     return false;
-// }
+void CSV::WriteCSVPairs(std::string path, List<Entry<Set*>*>* entries){
+    std::ofstream myfile;
+    myfile.open(path);
+    
+    for (auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())) {
+        auto cur = i->getValue();
+        auto item = cur->value;
+        auto items = item->getItems();
+        for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
+            auto val = j->getValue();
+            for (auto k = *(j->getNext()); k != nullptr; k = *(k->getNext())) {
+                auto val1 = k->getValue();
+                myfile << val->value << ", " << val1->value << std::endl;
+            }
+            delete val;
+        }
+        delete cur;
+    }
+    delete entries;
+    myfile.close();
+}
 
-// List<std::string>* CSV::CreateFileList(List<Entry<Set*>*>* entries){
-//     auto FList = new List<std::string>();
-//     for (auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())) { 
-//         auto entry = i->getValue();
-//         auto vec = entry->value;
-//         if(vec->getLength() < 2) continue;
-//         // CSV::SortList(list);
-//         std::string s1("");
-//         auto flag = true;
-//         for (auto j = vec->getRoot(); j != nullptr; j = *(j->getNext())) { 
-//             if(flag){
-//                 flag = false;
-//                 s1 += j->getValue();
-//             }else{
-//                 s1 += ", ";
-//                 s1 += j->getValue();
-//             }
-//         }
-//         if(!CSV::Exists(FList, s1)){
-//             FList->add(s1);
-//         }
-//         delete entry;
-//     }
-//     return FList;
-// }
 
-// void CSV::WriteCSV(std::string path, List<Entry<Set*>*>* entries){
-//     std::ofstream myfile;
-//     myfile.open(path);
-//     auto FList = CSV::CreateFileList(entries);
-//     for (auto i = FList->getRoot(); i != nullptr; i = *(i->getNext())) { 
-//         myfile << i->getValue() << "\n";
-//     }
-//     myfile.close();
-//     delete FList;
-// }
-
+void CSV::WriteCSV(std::string path, List<Entry<Set*>*>* entries){
+    std::ofstream myfile;
+    myfile.open(path);
+    
+    for (auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())) {
+        auto cur = i->getValue();
+        auto item = cur->value;
+        auto items = item->getItems();
+        bool flag = true;
+        for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
+            auto val = j->getValue();
+            if(flag){
+                flag = false;
+                myfile << val->value;
+            }else{
+                myfile << ", " << val->value;
+            }
+            delete val;
+        }
+        myfile << std::endl;
+        delete cur;
+    }
+    delete entries;
+    myfile.close();
+}
 
