@@ -30,6 +30,7 @@ List<Entry<Set*>*>* RemoveDup(List<Entry<Set*>*>* entries){
     dedupe.set(key, item);
     delete val;
   }
+  delete entries;
   return dedupe.getEntries();
 }
 
@@ -38,14 +39,13 @@ int main() {
   char cwd[len];
   getcwd(cwd, len);
   clock_t begin = clock();
-  auto path = FileSystem::join(cwd, "Y_Dataset.csv");
+  auto path = FileSystem::join(cwd, "W_Dataset.csv");
   auto clique = new Clique();
   auto pairs = CSV::ReadCSV(path);
   PairsToClique(pairs, clique);
   auto entries = clique->getEntries();
   auto unique = RemoveDup(entries);
-  delete entries;
-  auto file = FileSystem::join(cwd, "Y_Out_Pairs.csv");
+  auto file = FileSystem::join(cwd, "W_Out_Pairs.csv");
   CSV::WriteCSVPairs(file, unique);
   for (auto i = 0; i < pairs->getLength(); i++) {
     auto pair = (*pairs)[i];

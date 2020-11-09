@@ -82,6 +82,8 @@ void CSV::WriteCSVPairs(std::string path, List<Entry<Set*>*>* entries){
             }
             delete val;
         }
+        delete items;
+        delete item;
         delete cur;
     }
     delete entries;
@@ -109,6 +111,8 @@ void CSV::WriteCSV(std::string path, List<Entry<Set*>*>* entries){
             delete val;
         }
         myfile << std::endl;
+        delete items;
+        delete item;
         delete cur;
     }
     delete entries;
