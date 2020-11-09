@@ -57,7 +57,7 @@ class HashMap {
     }
   }
 
-  void set(std::string key, T value) {
+  void set(const std::string& key, T value) {
     unsigned long index = this->hashFunc(key);
     if (index >= this->bucketSize) {
       printf("Wow this hash function sucks\n");
@@ -100,7 +100,7 @@ class HashMap {
     return entries;
   }
 
-  HashResult<T>* get(std::string key) {
+  HashResult<T>* get(const std::string& key) {
     unsigned long index = this->hashFunc(key);
     if (index >= this->bucketSize) {
       printf("Wow this hash function sucks\n");
@@ -119,6 +119,27 @@ class HashMap {
       }
     }
     return new HashResult<T>();
+  }
+
+  void get(const std::string& key, HashResult<T>* result) {
+    unsigned long index = this->hashFunc(key);
+    if (index >= this->bucketSize) {
+      printf("Wow this hash function sucks\n");
+      exit(EXIT_FAILURE);
+    }
+    List<Item<T>*>* bucket = this->buckets[index];
+    if (bucket == nullptr) {
+      return;
+    }
+    for (auto current = bucket->getRoot(); current != nullptr;
+         current = *(current->getNext())) {
+      auto value = current->getValue();
+      if (key == value->getKey()) {
+        auto val = value->getValue();
+        result->hasValue = true;
+        result->value = val;
+      }
+    }
   }
 
   ~HashMap() {
