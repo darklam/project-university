@@ -6,4 +6,6 @@ bin/**
 .DS_Store
 analysis.txt
 gmon.out
+camera_specs
 *.csv
+*.py
