@@ -19,9 +19,9 @@ struct Pair{
 
 namespace CSV {
     CustomVector<Pair*>* ReadCSV(const std::string& path);
-    void WriteCSV(std::string, Llist);
-    bool Exists(List<std::string>* , std::string);
-    List<std::string>* CreateFileList(Llist);
+    // void WriteCSV(std::string, List<Entry<Set*>*>*);
+    // bool Exists(List<std::string>* , std::string);
+    // List<std::string>* CreateFileList(List<Entry<Set*>*>*);
 }
 
 #endif

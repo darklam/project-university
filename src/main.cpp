@@ -11,6 +11,8 @@
 #include "Set.hpp"
 #include "Utils.hpp"
 
+
+
 int main() {
   int len = 2048;
   char cwd[len];
@@ -27,50 +29,11 @@ int main() {
     if (pair->value == 0) {
       continue;
     }
-    HashResult<Set*> res1;
-    map.get(pair->id1, &res1);
-    HashResult<Set*> res2;
-    map.get(pair->id2, &res2);
-
-    if (res1.hasValue && res2.hasValue) {
-      if (res1.value != res2.value) {
-        res1.value->merge(res2.value);
-        auto entries = res2.value->getItems();
-        for (auto it = entries->getRoot(); it != nullptr; it = *(it->getNext())) {
-          auto v = it->getValue();
-          auto actual = v->value;
-          HashResult<Set*> res3;
-          map.get(actual, &res3);
-          if (res3.hasValue) {
-            map.set(actual, res1.value);
-          }
-          delete v;
-        }
-        delete entries;
-        delete res2.value;
-        map.set(pair->id2, res1.value);
-        continue;
-      }
-      res1.value->add(pair->id2);
-    } else if (res1.hasValue && !res2.hasValue) {
-      res1.value->add(pair->id2);
-      map.set(pair->id2, res1.value);
-      continue;
-    } else if (res2.hasValue && !res1.hasValue) {
-      res2.value->add(pair->id1);
-      continue;
-    } else {
-      Set* set = new Set();
-      set->add(pair->id1);
-      set->add(pair->id2);
-      map.set(pair->id1, set);
-      map.set(pair->id2, set);
-      continue;
-    }
+    clique->Pair(pair->getId1(), pair->getId2());
   }
 
-  auto res = map.getEntries();
-
+  auto res = clique->getEntries();
+  printf("exw mpei\n");
   HashMap<Set*> dedupe;
   for (auto j = res->getRoot(); j != nullptr; j = *(j->getNext())) {
     auto val = j->getValue();
@@ -102,5 +65,6 @@ int main() {
     delete pair;
   }
   delete pairs;
+  delete clique;
   return 0;
 }
