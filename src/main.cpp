@@ -1,14 +1,15 @@
 #include <unistd.h>
+#include <ctime>
 #include <iostream>
 #include <string>
+#include "CSV.hpp"
+#include "Clique.hpp"
 #include "FileSystem.hpp"
 #include "HashMap.hpp"
 #include "JSON.hpp"
 #include "List.hpp"
+#include "Set.hpp"
 #include "Utils.hpp"
-#include "CSV.hpp"
-#include "Clique.hpp"
-#include <ctime>
 
 int main() {
   int len = 2048;
@@ -18,66 +19,88 @@ int main() {
   auto path = FileSystem::join(cwd, "W_Dataset.csv");
   auto clique = new Clique();
   auto pairs = CSV::ReadCSV(path);
-  std::cout << "Finished Reading" << std::endl;
-  // for (auto i = 0; i < pairs->getLength(); i++) { 
-  //   auto pair =(*pairs)[i];
-  //   delete pair;
-  // }
-  // delete pairs;
-  // printf("got pairs\n");
 
-  // clock_t time1 = clock();
-  for (auto i = 0; i < pairs->getLength(); i++) { 
-    auto pair =(*pairs)[i];
-    // if(pair->getMatch() == 0) continue;
-    // clique->Add(pair->getId1());
-    // clique->Add(pair->getId2());
-    // clique->Pair(pair->getId1(), pair->getId2());
+  HashMap<Set*> map;
+
+  for (auto i = 0; i < pairs->getLength(); i++) {
+    auto pair = (*pairs)[i];
+    if (pair->value == 0) {
+      continue;
+    }
+    HashResult<Set*> res1;
+    map.get(pair->id1, &res1);
+    HashResult<Set*> res2;
+    map.get(pair->id2, &res2);
+
+    if (res1.hasValue && res2.hasValue) {
+      if (res1.value != res2.value) {
+        res1.value->merge(res2.value);
+        auto entries = res2.value->getItems();
+        for (auto it = entries->getRoot(); it != nullptr; it = *(it->getNext())) {
+          auto v = it->getValue();
+          auto actual = v->value;
+          HashResult<Set*> res3;
+          map.get(actual, &res3);
+          if (res3.hasValue) {
+            map.set(actual, res1.value);
+          }
+          delete v;
+        }
+        delete entries;
+        delete res2.value;
+        map.set(pair->id2, res1.value);
+        continue;
+      }
+      res1.value->add(pair->id2);
+    } else if (res1.hasValue && !res2.hasValue) {
+      res1.value->add(pair->id2);
+      map.set(pair->id2, res1.value);
+      continue;
+    } else if (res2.hasValue && !res1.hasValue) {
+      res2.value->add(pair->id1);
+      continue;
+    } else {
+      Set* set = new Set();
+      set->add(pair->id1);
+      set->add(pair->id2);
+      map.set(pair->id1, set);
+      map.set(pair->id2, set);
+      continue;
+    }
   }
-  // // std::string item1("AA");
-  // // clique->Add(item1);
-  // // std::string item2("1");
-  // // clique->Add(item2);
-  // // std::string item3("2");
-  // // clique->Add(item3);
-  // // std::string item4("3");
-  // // clique->Add(item4);
-  // // std::string item5("4");
-  // // clique->Add(item5);
-  // // clique->Pair(item1, item2);
-  // // clique->Pair(item3, item4);
-  // // clique->Pair(item1, item5);
-  // clock_t time2 = clock();
-  // printf("get entries\n");
-  //auto entries = clique->getEntries();
-  // // for (auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())) { 
-  // //   auto entry = i->getValue();
-  // //   //printf("%s\n", entry->key);
-  // //   std::cout << entry->key << std::endl;
-  // //   auto list = entry->value;
-  // //   for (auto j = list->getRoot(); j != nullptr; j = *(j->getNext())) { 
-  // //     std::cout << j->getValue() << " ";
-  // //   }
-  // //   printf("\n");
-  // //   //delete list;
-  // //   delete entry;
-  // // }
-  // // delete entries;
-  // clock_t time3 = clock();
-  // printf("write file\n");
-  // std::string file("W_Output.csv");
-  // CSV::WriteCSV(file, entries);
-  for (auto i = 0; i < pairs->getLength(); i++) { 
-    auto pair =(*pairs)[i];
+
+  auto res = map.getEntries();
+
+  HashMap<Set*> dedupe;
+  for (auto j = res->getRoot(); j != nullptr; j = *(j->getNext())) {
+    auto val = j->getValue();
+    auto item = val->value;
+    std::string key = std::to_string((intptr_t) item);
+    dedupe.set(key, item);
+    delete val;
+  }
+  delete res;
+
+  auto unique = dedupe.getEntries();
+  for (auto i = unique->getRoot(); i != nullptr; i = *(i->getNext())) {
+    auto cur = i->getValue();
+    auto item = cur->value;
+    auto items = item->getItems();
+    for (auto i = items->getRoot(); i != nullptr; i = *(i->getNext())) {
+      auto val = i->getValue();
+      std::cout << val->value << ",";
+      delete val;
+    }
+    std::cout << std::endl;
+    delete cur;
+  }
+
+  delete unique;
+
+  for (auto i = 0; i < pairs->getLength(); i++) {
+    auto pair = (*pairs)[i];
     delete pair;
   }
   delete pairs;
-  // clock_t end = clock();
-  // delete clique;
-  clock_t end = clock();
-  std::cout << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-  // std::cout << double(time2 - time1) / CLOCKS_PER_SEC << std::endl;
-  // std::cout << double(time3 - time2) / CLOCKS_PER_SEC << std::endl;
-  // std::cout << double(end - time3) / CLOCKS_PER_SEC << std::endl;
   return 0;
 }
