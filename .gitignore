@@ -7,5 +7,6 @@ bin/**
 analysis.txt
 gmon.out
 camera_specs
+2013_camera_specs
 *.csv
 *.py
