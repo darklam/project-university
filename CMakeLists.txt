@@ -4,7 +4,8 @@ project(project VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
-add_executable(project src/main.cpp src/CameraDTO.cpp src/Clique.cpp src/CSV.cpp src/FileSystem.cpp src/JSON.cpp src/Set.cpp src/Utils.cpp)
+file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
+add_executable(project ${SOURCES})
 
 target_include_directories(project PRIVATE include)
 set_property(TARGET project PROPERTY CXX_STANDARD 17)
