@@ -10,3 +10,7 @@ camera_specs
 2013_camera_specs
 *.csv
 *.py
+build
+CMakeFiles
+Debug/**
+Release/**
