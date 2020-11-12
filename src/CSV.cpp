@@ -33,27 +33,33 @@ int Pair::getMatch(){
 
 
 CustomVector<Pair*>* CSV::ReadCSV(const std::string& path){
-    std::ifstream file(path);
-    std::string line;
+    // std::ifstream file(path);
+    // std::string line;
     auto pairs = new CustomVector<Pair*>(10000);
-    if (file.bad()) {
-        printf("Welp something was not okie dokie, file: %s\n", path.c_str());
+    char *line = NULL;
+    size_t len = 0;
+    FILE *file = fopen(path.c_str(), "r");
+    if (!file){
+        printf("Shit just got real, file: %s\n", path.c_str());
         exit(EXIT_FAILURE);
     }
     int isFisrtLine = true;
-    while (std::getline(file, line)) {
+
+    bool finished = false;
+
+    while (!finished) {
+        int length = getline(&line, &len, file);
+        if (length == -1) {
+            finished = true;
+            continue;
+        }
         if(isFisrtLine){
             isFisrtLine = false;
             continue;
         }
         auto pair = new Pair();
-        // auto line_pair = Utils::splitString(std::string(line), ",");
-        // auto id1 = line_pair->get(0);
-        // auto id2 = line_pair->get(1);
-        // int matches = atoi(line_pair->get(2).c_str());
         std::string tokens[3];
-        Utils::splitStringLite(line, ";", tokens, 3);
-        //delete line_pair;
+        Utils::splitStringLite(std::string(line), ";", tokens, 3);
         if (tokens[0].length() == 0 || tokens[1].length() == 0) {
             printf("Something really bad happened\n");
         }
@@ -61,14 +67,17 @@ CustomVector<Pair*>* CSV::ReadCSV(const std::string& path){
         pair->setIds(tokens[0],tokens[1]);
         pairs->add(pair);
     }
-    file.close();
+    if(line != NULL){
+        delete(line);
+    }
+    fclose(file);
 
     return pairs;
 }
 
 void CSV::WriteCSVPairs(std::string path, List<Entry<Set*>*>* entries){
-    std::ofstream myfile;
-    myfile.open(path);
+    FILE *file;
+    file = fopen(path.c_str(), "w+");
     
     for (auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())) {
         auto cur = i->getValue();
@@ -78,7 +87,8 @@ void CSV::WriteCSVPairs(std::string path, List<Entry<Set*>*>* entries){
             auto val = j->getValue();
             for (auto k = *(j->getNext()); k != nullptr; k = *(k->getNext())) {
                 auto val1 = k->getValue();
-                myfile << val->value << ", " << val1->value << std::endl;
+                // myfile << val->value << ", " << val1->value << std::endl;
+                fprintf(file, "%s, %s\n", val->value.c_str(), val1->value.c_str());
             }
             delete val;
         }
@@ -87,14 +97,16 @@ void CSV::WriteCSVPairs(std::string path, List<Entry<Set*>*>* entries){
         delete cur;
     }
     delete entries;
-    myfile.close();
+    // myfile.close();
+    fclose(file);
 }
 
 
 void CSV::WriteCSV(std::string path, List<Entry<Set*>*>* entries){
-    std::ofstream myfile;
-    myfile.open(path);
-    
+    // std::ofstream myfile;
+    // myfile.open(path);
+    FILE *file;
+    file = fopen(path.c_str(), "w+");
     for (auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())) {
         auto cur = i->getValue();
         auto item = cur->value;
@@ -104,18 +116,18 @@ void CSV::WriteCSV(std::string path, List<Entry<Set*>*>* entries){
             auto val = j->getValue();
             if(flag){
                 flag = false;
-                myfile << val->value;
+                fprintf(file, "%s", val->value.c_str());
             }else{
-                myfile << ", " << val->value;
+                fprintf(file, ", %s", val->value.c_str());
             }
             delete val;
         }
-        myfile << std::endl;
+        fprintf(file, "\n");
         delete items;
         delete item;
         delete cur;
     }
     delete entries;
-    myfile.close();
+    fclose(file);
 }
 
