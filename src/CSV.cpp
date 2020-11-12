@@ -33,10 +33,8 @@ int Pair::getMatch(){
 
 
 CustomVector<Pair*>* CSV::ReadCSV(const std::string& path){
-    // std::ifstream file(path);
-    // std::string line;
     auto pairs = new CustomVector<Pair*>(10000);
-    char *line = NULL;
+    char *line = nullptr;
     size_t len = 0;
     FILE *file = fopen(path.c_str(), "r");
     if (!file){
@@ -67,8 +65,8 @@ CustomVector<Pair*>* CSV::ReadCSV(const std::string& path){
         pair->setIds(tokens[0],tokens[1]);
         pairs->add(pair);
     }
-    if(line != NULL){
-        delete(line);
+    if(line != nullptr){
+        free(line);
     }
     fclose(file);
 

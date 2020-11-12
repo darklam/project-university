@@ -39,7 +39,7 @@ int main() {
   char cwd[len];
   getcwd(cwd, len);
   clock_t begin = clock();
-  auto path = FileSystem::join(cwd, "y_dataset.csv");
+  auto path = FileSystem::join(cwd, "W_Dataset.csv");
   auto clique = new Clique();
   auto pairs = CSV::ReadCSV(path);
   PairsToClique(pairs, clique);
