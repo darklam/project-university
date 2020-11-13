@@ -1,0 +1,17 @@
+on:
+  push
+
+jobs:
+  test-this-thing:
+    runs-on: ubuntu-20.04
+    name: Test all the things
+    steps:
+      - uses: actions/checkout@v2.1.0
+        name: Checkout the thing
+      - name: Configure the thing
+        run: sh configure-debug
+      - name: Compile the thing
+        run: cd Debug && cmake --build . --target test
+      - name: Run the tests
+        run: cd Debug/test && ./test
+
