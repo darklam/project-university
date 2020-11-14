@@ -13,5 +13,5 @@ jobs:
       - name: Compile the thing
         run: cd Debug && cmake --build . --target test
       - name: Run the tests
-        run: cd Debug/test && ./test
+        run: cd Debug && ./test/test
 

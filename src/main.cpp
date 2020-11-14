@@ -38,7 +38,6 @@ int main() {
   int len = 2048;
   char cwd[len];
   getcwd(cwd, len);
-  clock_t begin = clock();
   auto path = FileSystem::join(cwd, "W_Dataset.csv");
   auto clique = new Clique();
   auto pairs = CSV::ReadCSV(path);
