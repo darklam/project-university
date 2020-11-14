@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cerrno>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include "FileSystem.hpp"
@@ -27,19 +26,26 @@ std::string getId(CustomVector<std::string>* params) {
 }
 
 CameraDTO* JSON::parseJSON(const std::string& path) {
-  std::ifstream file(path);
-  std::string line;
+  FILE* file = fopen(path.c_str(), "r");
+  size_t len = 0;
+  if (!file) {
+    printf("Shit just got real, file: %s\n", path.c_str());
+    exit(EXIT_FAILURE);
+  }
   auto params = Utils::splitString(path, "/");
   auto id = getId(params);
   delete params;
   auto camera = new CameraDTO();
   camera->setId(id);
-  if (file.bad()) {
-    std::cout << "Something horrible happend when opening the file at: " << path
-              << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  while (std::getline(file, line)) {
+  bool finished = false;
+  char* ln;
+  while (!finished) {
+    int length = getline(&ln, &len, file);
+    if (length == -1) {
+      finished = true;
+      continue;
+    }
+    std::string line(ln);
     if (line.find("{") != std::string::npos ||
         line.find("}") != std::string::npos) {
       continue;
@@ -61,18 +67,32 @@ CameraDTO* JSON::parseJSON(const std::string& path) {
       camera->addProperty(key, value);
     } else if (isArrayStart) {
       auto array = new CustomVector<std::string>(10);
-      std::getline(file, line);
-      auto isArrayEnd = line.find("]") != std::string::npos && value.find("\"") == std::string::npos;
+      int length = getline(&ln, &len, file);
+      if (length == -1) {
+        finished = true;
+        continue;
+      }
+      line = std::string(ln);
+      auto isArrayEnd = line.find("]") != std::string::npos &&
+                        value.find("\"") == std::string::npos;
       while (!isArrayEnd) {
         array->add(line);
-        std::getline(file, line);
-        isArrayEnd = line.find("]") != std::string::npos && value.find("\"") == std::string::npos;
+        getline(&ln, &len, file);
+        if (length == -1) {
+          finished = true;
+          break;
+        }
+        line = std::string(ln);
+        isArrayEnd = line.find("]") != std::string::npos &&
+                     value.find("\"") == std::string::npos;
       }
       camera->addProperty(key, array);
     }
   }
-
-  file.close();
+  if (ln != nullptr) {
+    free(ln);
+  }
+  fclose(file);
 
   return camera;
 }

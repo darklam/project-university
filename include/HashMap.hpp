@@ -57,6 +57,14 @@ class HashMap {
     }
   }
 
+  HashMap(int bucketSize) {
+    this->bucketSize = bucketSize;
+    this->buckets = new List<Item<T>*>*[this->bucketSize];
+    for (int i = 0; i < this->bucketSize; i++) {
+      this->buckets[i] = nullptr;
+    }
+  }
+
   void set(const std::string& key, T value) {
     unsigned long index = this->hashFunc(key);
     if (index >= this->bucketSize) {
