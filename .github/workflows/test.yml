@@ -9,9 +9,5 @@ jobs:
       - uses: actions/checkout@v2.1.0
         name: Checkout the thing
       - name: Configure the thing
-        run: sh configure_debug.sh
-      - name: Compile the thing
-        run: cd Debug && cmake --build . --target test
-      - name: Run the tests
-        run: cd Debug && ./test/test
+        run: sh run_tests.sh
 
