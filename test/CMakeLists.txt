@@ -34,11 +34,11 @@ file(GLOB_RECURSE MAIN_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "../src/*.cp
 list(REMOVE_ITEM MAIN_SOURCES "../src/main.cpp")
 
 file(GLOB_RECURSE TEST_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "./*.cpp")
-add_executable(test ${MAIN_SOURCES} ${TEST_SOURCES})
+add_executable(test_project ${MAIN_SOURCES} ${TEST_SOURCES})
 
-target_include_directories(test PRIVATE ../include)
+target_include_directories(test_project PRIVATE ../include)
 
-set_property(TARGET test PROPERTY CXX_STANDARD 17)
-target_link_libraries(test gtest)
+set_property(TARGET test_project PROPERTY CXX_STANDARD 17)
+target_link_libraries(test_project gtest)
 
 include(CPack)
