@@ -32,3 +32,14 @@ void Utils::splitStringLite(const std::string& str, const std::string& delim, st
         current = current = str.find(",", previous);
     }
 }
+
+void Utils::splitNew(const std::string& str, const std::string& delimiter, FastVector<std::string>& vec) {
+    std::size_t current, previous = 0;
+    current = str.find(delimiter);
+    while (current != std::string::npos) {
+        vec.append(str.substr(previous, current - previous));
+        previous = current + 1;
+        current = str.find(delimiter, previous);
+    }
+    vec.append(str.substr(previous, current - previous));
+}

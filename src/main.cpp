@@ -10,6 +10,8 @@
 #include "List.hpp"
 #include "Set.hpp"
 #include "Utils.hpp"
+#include "FastVector.hpp"
+#include <TextProcessing.hpp>
 
 struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
@@ -64,28 +66,21 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
 }
 
 int main(int argc, char** argv) {
-  ProgramParams params;
-  parseArgs(argc, argv, &params);
-  int len = 2048;
-  char cwd[len];
-  getcwd(cwd, len);
-  auto path = FileSystem::join(cwd, params.inName);
-  auto clique = new Clique();
-  auto pairs = CSV::ReadCSV(path);
-  PairsToClique(pairs, clique);
-  auto entries = clique->getEntries();
-  auto unique = RemoveDup(entries);
-  auto file = FileSystem::join(cwd, params.outName);
-  if (params.outType == "pairs") {
-    CSV::WriteCSVPairs(file, unique);
-  } else if (params.outType == "all") {
-    CSV::WriteCSV(file, unique);
+  FastVector<std::string> texts(10);
+  texts.append("Hello there motherfucker");
+  texts.append("What");
+  texts.append("What duuuuude?");
+  texts.append("12 21 hehehe");
+  texts.append("My nam jef");
+  auto result = TextProcessing::tokenizePlus(texts);
+  for (int i = 0; i < result->getLength(); i++) {
+    auto curr = (*result)[i];
+    std::cout << "Sentence #" << i << std::endl;
+    for (int j = 0; j < curr->getLength(); j++) {
+      std::cout << (*curr)[j] << std::endl;
+    }
+    delete curr;
   }
-  for (auto i = 0; i < pairs->getLength(); i++) {
-    auto pair = (*pairs)[i];
-    delete pair;
-  }
-  delete pairs;
-  delete clique;
+  delete result;
   return 0;
 }
