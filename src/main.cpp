@@ -20,10 +20,12 @@ struct ProgramParams {
 void PairsToClique(CustomVector<Pair*>* pairs, Clique* clique) {
   for (auto i = 0; i < pairs->getLength(); i++) {
     auto pair = (*pairs)[i];
+    // std::cout << pair->getId1() << " " << pair->getId2() << " " << pair->value << std::endl;
     if (pair->value == 0) {
-      continue;
+      clique->NegativePair(pair->getId1(), pair->getId2());
+    }else{
+      clique->Pair(pair->getId1(), pair->getId2());
     }
-    clique->Pair(pair->getId1(), pair->getId2());
   }
 }
 
@@ -73,13 +75,14 @@ int main(int argc, char** argv) {
   auto clique = new Clique();
   auto pairs = CSV::ReadCSV(path);
   PairsToClique(pairs, clique);
-  auto entries = clique->getEntries();
-  auto unique = RemoveDup(entries);
+  auto matches = clique->getPositiveEntries();
+  // auto nomatches = clique->getNegativeEntries();
+  auto uniquematches = RemoveDup(matches);
   auto file = FileSystem::join(cwd, params.outName);
   if (params.outType == "pairs") {
-    CSV::WriteCSVPairs(file, unique);
+    CSV::WriteCSVPairs(file, uniquematches);
   } else if (params.outType == "all") {
-    CSV::WriteCSV(file, unique);
+    CSV::WriteCSV(file, uniquematches);
   }
   for (auto i = 0; i < pairs->getLength(); i++) {
     auto pair = (*pairs)[i];

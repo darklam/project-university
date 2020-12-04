@@ -24,6 +24,7 @@ std::string FileSystem::join(const std::string& a, const std::string& b) {
   return fin;
 }
 
+
 List<std::string>* FileSystem::listContents(const std::string& path, char type) {
   DIR* d;
   struct dirent* dir;

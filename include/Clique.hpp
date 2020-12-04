@@ -11,9 +11,16 @@ class Clique{
         Clique();
         ~Clique();
         void Pair(std::string, std::string);
-        List<Entry<Set*>*>* getEntries();
+        List<Entry<Set*>*>* getPositiveEntries();
+        List<Entry<Set*>*>* getNegativeEntries();
+        void NegativePair(std::string, std::string);
     private:
-        HashMap<Set*>* Map;
+        HashMap<Set*>* Positive;
+        HashMap<Set*>* Negative;
+        bool existInPositives(std::string, std::string);
+        bool existInNegatives(std::string, std::string);
+        void UpdateNegativesWithNewPair(std::string);
+        void PairMergeNegatives(std::string, std::string);
 };
 
 
