@@ -2,12 +2,14 @@
 #include "Utils.hpp"
 #include <thread>
 #include <mutex>
+#include <cmath>
 
 Vector2D TextProcessing::tokenizePlus(FastVector<std::string>& texts) {
   auto coreCount = std::thread::hardware_concurrency();
   FastVector<std::string>* threadData[coreCount];
   for (int i = 0; i < coreCount; i++) {
-    threadData[i] = new FastVector<std::string>(texts.getLength() / coreCount);
+    int amount = ceil(texts.getLength() / (double) coreCount);
+    threadData[i] = new FastVector<std::string>(amount);
   }
 
   for (int i = 0; i < texts.getLength(); i++) {
@@ -23,9 +25,10 @@ Vector2D TextProcessing::tokenizePlus(FastVector<std::string>& texts) {
   for (int i = 0; i < coreCount; i++) {
     auto currData = threadData[i];
 
-    handles[i] = std::thread([&](FastVector<std::string> data) {
-      for (int j = 0; j < data.getLength(); j++) {
-        auto str = data[j];
+    handles[i] = std::thread([&threadData, i, &m, &output]() {
+      auto data = threadData[i];
+      for (int j = 0; j < data->getLength(); j++) {
+        auto str = (*data)[j];
         auto tokens = new FastVector<std::string>(10);
         std::cout << "String: " << str << std::endl;
         Utils::splitNew(str, " ", *tokens);
@@ -33,7 +36,7 @@ Vector2D TextProcessing::tokenizePlus(FastVector<std::string>& texts) {
         output->append(tokens);
         m.unlock();
       }
-    }, *currData);
+    });
   }
 
   for (int i = 0; i < coreCount; i++) {
