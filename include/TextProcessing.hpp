@@ -5,6 +5,7 @@
 
 namespace TextProcessing {
   Vector2D tokenizePlus(FastVector<std::string>& texts);
+  void getStopWords(FastVector<std::string>& words);
 }
 
 #endif

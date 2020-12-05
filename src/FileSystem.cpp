@@ -11,6 +11,7 @@
 #include "List.hpp"
 #include <string>
 #include <iostream>
+#include <functional>
 
 bool FileSystem::isDirectory(const std::string& path) {
   struct stat path_stat;
@@ -77,4 +78,29 @@ List<std::string>* FileSystem::getAllFiles(const std::string& path) {
   delete result;
 
   return files;
+}
+
+void FileSystem::readFile(std::string& path, std::function<void(std::string&)> func) {
+  FILE* file = fopen(path.c_str(), "r");
+  size_t len = 0;
+  if (!file) {
+    printf("Shit just got real, file: %s\n", path.c_str());
+    exit(EXIT_FAILURE);
+  }
+  char* ln;
+  bool finished = false;
+  while (!finished) {
+    int length = getline(&ln, &len, file);
+    if (length == -1) {
+      finished = true;
+      continue;
+    }
+    std::string line(ln);
+    func(line);
+  }
+
+  if (ln != nullptr) {
+    free(ln);
+  }
+  fclose(file);
 }
