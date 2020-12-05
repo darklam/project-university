@@ -11,6 +11,7 @@
 #include "Set.hpp"
 #include "Utils.hpp"
 #include "FastVector.hpp"
+#include "Vectorizer.hpp"
 #include <TextProcessing.hpp>
 
 struct ProgramParams {
@@ -66,20 +67,22 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
 }
 
 int main(int argc, char** argv) {
-  FastVector<std::string> texts(10);
+  FastVector<std::string> texts(5);
   texts.append("Hello   there :\":'?;'@!$&^&%*^(*))(*) motherfucker");
-  texts.append("What  ");
-  texts.append("What   duuuuude?");
+  texts.append("What my nam jef jef my dude   oh m^y");
+  texts.append("What   dude?");
   texts.append("12  21   hehehe   532^^always");
   texts.append("My nam %% ^&^   a                        jef able");
   auto result = TextProcessing::tokenizePlus(texts);
+  Vectorizer v;
+  v.fit(result);
+  FastVector<WordInfo*> vocab;
+  v.getVocab(vocab);
+  for (int i = 0; i < vocab.getLength(); i++) {
+    std::cout << "Word: " << vocab[i]->word << " - Count: " << vocab[i]->count << std::endl;
+  }
   for (int i = 0; i < result->getLength(); i++) {
-    auto curr = (*result)[i];
-    std::cout << "Sentence #" << i << std::endl;
-    for (int j = 0; j < curr->getLength(); j++) {
-      std::cout << (*curr)[j] << std::endl;
-    }
-    delete curr;
+    delete (*result)[i];
   }
   delete result;
   return 0;

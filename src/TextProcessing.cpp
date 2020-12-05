@@ -1,25 +1,23 @@
 #include "TextProcessing.hpp"
-#include "Utils.hpp"
-#include <thread>
-#include <mutex>
-#include <cmath>
 #include <stdio.h>
 #include <unistd.h>
+#include <cmath>
+#include <mutex>
+#include <thread>
 #include "FileSystem.hpp"
-
+#include "Utils.hpp"
 
 Vector2D TextProcessing::tokenizePlus(FastVector<std::string>& texts) {
   auto coreCount = std::thread::hardware_concurrency();
   FastVector<std::string>* threadData[coreCount];
   for (int i = 0; i < coreCount; i++) {
-    int amount = ceil(texts.getLength() / (double) coreCount);
+    int amount = ceil(texts.getLength() / (double)coreCount);
     threadData[i] = new FastVector<std::string>(amount);
   }
 
   for (int i = 0; i < texts.getLength(); i++) {
     auto data = threadData[i % coreCount];
     data->append(texts[i]);
-    std::cout << texts[i] << std::endl;
   }
 
   std::mutex m;
@@ -36,12 +34,12 @@ Vector2D TextProcessing::tokenizePlus(FastVector<std::string>& texts) {
       for (int j = 0; j < data->getLength(); j++) {
         auto str = (*data)[j];
         Utils::lowerAndClean(str);
-        int expectedWords = ceil(str.length() / 5.7); // 4.7 is the average word length for english so +1 for spaces
+        // 4.7 is the average word length for english so +1 for spaces
+        int expectedWords = ceil(str.length() / 5.7);
         auto tokens = new FastVector<std::string>(expectedWords);
         Utils::splitNew(str, " ", *tokens);
-        auto filtered = tokens->filter([&](std::string it) {
-          return !stopWords.includes(it);
-        });
+        auto filtered = tokens->filter(
+            [&](std::string it) { return !stopWords.includes(it); });
         delete tokens;
         m.lock();
         output->append(filtered);
