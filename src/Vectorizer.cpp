@@ -53,8 +53,8 @@ void Vectorizer::fit(Vector2D sentences) {
           this->vocab->get(word, &res);
           m.unlock();
           if (res.hasValue) {
-            m.lock();
             auto info = res.value;
+            m.lock();
             info->count++;
             m.unlock();
           } else {
