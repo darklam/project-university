@@ -96,6 +96,23 @@ class FastVector {
     }
   }
 
+  // This sets the length of the vector equal to the size (the reserved size)
+  // with a value T
+  void forceInit(T value) {
+    this->length = this->size;
+    for (int i = 0; i < this->size; i++) {
+      this->items[i] = value;
+    }
+  }
+
+  void set(int index, T value) {
+    if (index >= this->size) {
+      std::cout << "U w0t m8? Index: " << index << " Size: " << this->size << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    this->items[index] = value;
+  }
+
  private:
   void initArray() { this->items = new T[this->size]; }
   T* items = nullptr;

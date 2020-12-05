@@ -1,8 +1,8 @@
 #include "Utils.hpp"
 
 #include <stdio.h>
-
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <sstream>
 #include <string>
@@ -109,4 +109,26 @@ void Utils::lowerAndClean(std::string& str) {
     str.erase(0, 1);
   }
   Utils::makeLowercase(str);
+}
+
+void Utils::getBatchIndex(int* start, int* end, int length, int coreCount, int currentCore) {
+  int perCoreData = ceil(length / (double)coreCount);
+  if (currentCore == coreCount - 1) {
+    // The last core will process whatever is left
+    *end = length;
+  } else {
+    *end = (currentCore + 1) * perCoreData;
+  }
+  *start = currentCore * perCoreData;
+  // If the cores are more than the sentences, then each core will process
+  // just one sentence and the remaining ones will just call it quits
+  if (perCoreData == 1) {
+    *start = currentCore;
+    *end = currentCore + 1;
+    if (*end > length) {
+      *start = -1;
+      *end = -1;
+      return;
+    }
+  }
 }

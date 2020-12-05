@@ -7,18 +7,17 @@
 #include "Types.hpp"
 
 struct WordInfo {
-  int count = 1;
-  std::string word;
+  float idf;
 };
 
 class Vectorizer {
  public:
   Vectorizer();
   void fit(Vector2D sentences);
-  void transform(FastVector<std::string>& sentences,
-                 FastVector<float>& vectors);
+  void transform(Vector2D sentences,
+                 FastVector<FastVector<float>*>& vectors);
   ~Vectorizer();
-  void getVocab(FastVector<WordInfo*>& vec);
+  void getVocab(FastVector<Entry<WordInfo*>*>& vec);
  private:
   HashMap<WordInfo*>* vocab;
   int vocabSize = 0;

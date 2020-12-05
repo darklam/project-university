@@ -168,6 +168,24 @@ class HashMap {
     }
   }
 
+  void getEntries(FastVector<Entry<T>*>& entries) {
+    for (int i = 0; i < this->bucketSize; i++) {
+      if (this->buckets[i] == nullptr) {
+        continue;
+      }
+
+      List<Item<T>*>* current = this->buckets[i];
+      for (Node<Item<T>*>* cur = current->getRoot(); cur != nullptr;
+           cur = *(cur->getNext())) {
+        Entry<T>* e = new Entry<T>();
+        Item<T>* currentBucket = cur->getValue();
+        e->value = currentBucket->getValue();
+        e->key = currentBucket->getKey();
+        entries.append(e);
+      }
+    }
+  }
+
   ~HashMap() {
     for (int i = 0; i < this->bucketSize; i++) {
       List<Item<T>*>* current = this->buckets[i];
