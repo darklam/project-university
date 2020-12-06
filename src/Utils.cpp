@@ -7,20 +7,20 @@
 #include <sstream>
 #include <string>
 #include "CustomVector.hpp"
+#include "FastVector.hpp"
 
-CustomVector<std::string>* Utils::splitString(const std::string& str,
-                                              const std::string& delimiter) {
-  auto vec = new CustomVector<std::string>(5);
+void Utils::splitString(const std::string& str,
+                                              const std::string& delimiter,
+                                              FastVector<std::string>& tokens) {
   std::size_t current, previous = 0;
   current = str.find(delimiter);
   while (current != std::string::npos) {
-    vec->add(str.substr(previous, current - previous));
+    tokens.append(str.substr(previous, current - previous));
     previous = current + 1;
     current = str.find(delimiter, previous);
   }
-  vec->add(str.substr(previous, current - previous));
+  tokens.append(str.substr(previous, current - previous));
 
-  return vec;
 }
 
 void Utils::splitStringLite(const std::string& str,
@@ -96,7 +96,7 @@ void Utils::makeLowercase(std::string& str) {
 void Utils::lowerAndClean(std::string& str) {
   str.erase(std::remove_if(
                 str.begin(), str.end(),
-                [](char c) { return !(std::isalpha(c) || std::isspace(c)); }),
+                [](char c) { return !(std::isalnum(c) || std::isspace(c)); }),
             str.end());
   str.erase(
       std::unique(str.begin(), str.end(),

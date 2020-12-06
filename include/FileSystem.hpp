@@ -4,13 +4,14 @@
 #include "List.hpp"
 #include <string>
 #include <functional>
+#include "FastVector.hpp"
 
 namespace FileSystem {
-  List<std::string>* listContents(const std::string& path, char type); // type = 'd' fro directories and 'f' for files
+  void listContents(const std::string& path, char type, FastVector<std::string>& files); // type = 'd' fro directories and 'f' for files
   bool isDirectory(const std::string& path);
   std::string join(const std::string& a, const std::string& b);
-  List<std::string>* getAllFiles(const std::string& path);
-  void readFile(std::string& path, std::function<void(std::string&)> func);
+  void getAllFiles(const std::string& path, FastVector<std::string>& files);
+  void readFile(const std::string& path, std::function<void(std::string&)> func);
 }
 
 #endif

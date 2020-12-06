@@ -6,6 +6,8 @@
 #include <string>
 #include "FileSystem.hpp"
 #include "Utils.hpp"
+#include <thread>
+#include <mutex>
 
 std::string cleanJSONValue(const std::string& value) {
   if (value[value.length() - 1] == ',') {
@@ -15,9 +17,9 @@ std::string cleanJSONValue(const std::string& value) {
   }
 }
 
-std::string getId(CustomVector<std::string>* params) {
-  auto site = (*params)[params->getLength() - 2];
-  auto id = (*params)[params->getLength() - 1];
+std::string getId(FastVector<std::string>& params) {
+  auto site = params[params.getLength() - 2];
+  auto id = params[params.getLength() - 1];
   std::string fin;
   auto pointPos = id.find(".");
   auto actualId = id.substr(0, pointPos);
@@ -29,12 +31,13 @@ CameraDTO* JSON::parseJSON(const std::string& path) {
   FILE* file = fopen(path.c_str(), "r");
   size_t len = 0;
   if (!file) {
-    printf("Shit just got real, file: %s\n", path.c_str());
+    std::cout << "Something went wrong when opening the file " << path << std::endl;
+    perror("Error");
     exit(EXIT_FAILURE);
   }
-  auto params = Utils::splitString(path, "/");
-  auto id = getId(params);
-  delete params;
+  FastVector<std::string> tokens(5);
+  Utils::splitString(path, "/", tokens);
+  auto id = getId(tokens);
   auto camera = new CameraDTO();
   camera->setId(id);
   bool finished = false;
@@ -50,14 +53,13 @@ CameraDTO* JSON::parseJSON(const std::string& path) {
         line.find("}") != std::string::npos) {
       continue;
     }
-    auto kv = Utils::splitString(line, ":");
-    if (kv->getLength() != 2) {
-      delete kv;
+    FastVector<std::string> kv(6);
+    Utils::splitString(line, ":", kv);
+    if (kv.getLength() != 2) {
       continue;
     }
-    auto key = kv->get(0);
-    auto value = kv->get(1);
-    delete kv;
+    auto key = kv[0];
+    auto value = kv[1];
     auto isNotArrayStart = value.find("[") == std::string::npos &&
                            value.find("]") == std::string::npos &&
                            value.find("\"") != std::string::npos;
@@ -97,16 +99,26 @@ CameraDTO* JSON::parseJSON(const std::string& path) {
   return camera;
 }
 
-CustomVector<CameraDTO*>* JSON::loadData(const std::string& basePath) {
-  auto files = FileSystem::getAllFiles(basePath);
-  auto cameras = new CustomVector<CameraDTO*>(5000);
-  auto count = 0;
-  for (auto i = files->getRoot(); i != nullptr; i = *(i->getNext())) {
-    auto current = i->getValue();
-    auto camera = JSON::parseJSON(current);
-    cameras->add(camera);
-    // std::cout << "Added camera #" << count++ << std::endl;
+void JSON::loadData(const std::string& basePath, FastVector<CameraDTO*>& cameras) {
+  FastVector<std::string> files(10000);
+  FileSystem::getAllFiles(basePath, files);
+  auto coreCount = std::thread::hardware_concurrency();
+  std::thread handles[coreCount];
+  std::mutex m;
+  for (int core = 0; core < coreCount; core++) {
+    handles[core] = std::thread([&files, &coreCount, core, &cameras, &m]() {
+      int start, end;
+      Utils::getBatchIndex(&start, &end, files.getLength(), coreCount, core);
+      for (int i = start; i < end; i++) {
+        auto current = files[i];
+        auto camera = JSON::parseJSON(current);
+        m.lock();
+        cameras.append(camera);
+        m.unlock();
+      }
+    });
   }
-  delete files;
-  return cameras;
+  for (int i = 0; i < coreCount; i++) {
+    handles[i].join();
+  }
 }

@@ -67,48 +67,58 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
 }
 
 int main(int argc, char** argv) {
-  FastVector<std::string> texts(5);
-  texts.append("Hello   there :\":'?;'@!$&^&%*^(*))(*) motherfucker");
-  texts.append("What my nam jef jef jef jef my dude   oh m^y");
-  texts.append("What  jef dude?");
-  texts.append("12  21   hehehe   532^^always jef");
-  texts.append("My nam %% ^&^   a                        jef able");
-  auto result = TextProcessing::tokenizePlus(texts);
-  Vectorizer v;
-  v.fit(result);
-  FastVector<FastVector<float>*> vectorized(result->getLength());
-  vectorized.forceInit(nullptr);
-  v.transform(result, vectorized);
-  for (int i = 0; i < vectorized.getLength(); i++) {
-    auto current = vectorized[i];
-    if (current == nullptr) {
-      std::cout << "Something went insanely wrong!!!\n";
-      continue;
-    }
-    std::cout << "Sentence: ";
-    auto sent = (*result)[i];
-    for (int j = 0; j < sent->getLength(); j++) {
-      std::cout << (*sent)[j] << " ";
-    }
-    std::cout << std::endl;
-    for (int j = 0; j < current->getLength(); j++) {
-      std::cout << (*current)[j] << ", ";
-    }
-    std::cout << std::endl;
-    delete current;
-  }
-  for (int i = 0; i < result->getLength(); i++) {
-    delete (*result)[i];
-  }
-  delete result;
-  FastVector<Entry<WordInfo*>*> vocab;
-  v.getVocab(vocab);
-  for (int i = 0; i < vocab.getLength(); i++) {
-    auto entry = vocab[i];
-    auto word = entry->key;
-    auto info = entry->value;
-    std::cout << "Word: " << word << " - Idf: " << info->idf << std::endl;
-    delete entry;
+  // FastVector<std::string> texts(5);
+  // texts.append("Hello   there :\":'?;'@!$&^&%*^(*))(*) motherfucker");
+  // texts.append("What my nam jef jef jef jef my dude   oh m^y");
+  // texts.append("What  jef dude?");
+  // texts.append("12  21   hehehe   532^^always jef");
+  // texts.append("My nam %% ^&^   a                        jef able");
+  // auto result = TextProcessing::tokenizePlus(texts);
+  // Vectorizer v;
+  // v.fit(result);
+  // FastVector<FastVector<float>*> vectorized(result->getLength());
+  // vectorized.forceInit(nullptr);
+  // v.transform(result, vectorized);
+  // for (int i = 0; i < vectorized.getLength(); i++) {
+  //   auto current = vectorized[i];
+  //   if (current == nullptr) {
+  //     std::cout << "Something went insanely wrong!!!\n";
+  //     continue;
+  //   }
+  //   std::cout << "Sentence: ";
+  //   auto sent = (*result)[i];
+  //   for (int j = 0; j < sent->getLength(); j++) {
+  //     std::cout << (*sent)[j] << " ";
+  //   }
+  //   std::cout << std::endl;
+  //   for (int j = 0; j < current->getLength(); j++) {
+  //     std::cout << (*current)[j] << ", ";
+  //   }
+  //   std::cout << std::endl;
+  //   delete current;
+  // }
+  // for (int i = 0; i < result->getLength(); i++) {
+  //   delete (*result)[i];
+  // }
+  // delete result;
+  // FastVector<Entry<WordInfo*>*> vocab;
+  // v.getVocab(vocab);
+  // for (int i = 0; i < vocab.getLength(); i++) {
+  //   auto entry = vocab[i];
+  //   auto word = entry->key;
+  //   auto info = entry->value;
+  //   std::cout << "Word: " << word << " - Idf: " << info->idf << std::endl;
+  //   delete entry;
+  // }
+  int len = 2048;
+  char cwd[len];
+  getcwd(cwd, len);
+  auto path = FileSystem::join(cwd, "cameras");
+  FastVector<CameraDTO*> cameras(50000);
+  JSON::loadData(path, cameras);
+  std::cout << cameras[0]->getProperties() << std::endl;
+  for (int i = 0; i < cameras.getLength(); i++) {
+    delete cameras[i];
   }
   return 0;
 }

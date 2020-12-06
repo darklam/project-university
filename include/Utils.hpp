@@ -6,7 +6,7 @@
 #include <string>
 
 namespace Utils {
-  CustomVector<std::string>* splitString(const std::string& str, const std::string& delimiter);
+  void splitString(const std::string& str, const std::string& delimiter, FastVector<std::string>& tokens);
   void splitStringLite(const std::string&, const std::string&, std::string*, int );
   void splitNew(const std::string& str, const std::string& delimiter, FastVector<std::string>& vec);
   std::string trimString(std::string& str);
