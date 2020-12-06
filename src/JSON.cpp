@@ -41,7 +41,7 @@ CameraDTO* JSON::parseJSON(const std::string& path) {
   auto camera = new CameraDTO();
   camera->setId(id);
   bool finished = false;
-  char* ln;
+  char* ln = nullptr;
   while (!finished) {
     int length = getline(&ln, &len, file);
     if (length == -1) {
@@ -121,5 +121,4 @@ void JSON::loadData(const std::string& basePath, FastVector<CameraDTO*>& cameras
   for (int i = 0; i < coreCount; i++) {
     handles[i].join();
   }
-  std::cout << "Count: " << cameras.getLength() << std::endl;
 }

@@ -81,7 +81,7 @@ void FileSystem::readFile(const std::string& path, std::function<void(std::strin
     printf("Shit just got real, file: %s\n", path.c_str());
     exit(EXIT_FAILURE);
   }
-  char* ln;
+  char* ln = nullptr;
   bool finished = false;
   while (!finished) {
     int length = getline(&ln, &len, file);
