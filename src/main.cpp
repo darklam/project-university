@@ -114,11 +114,20 @@ int main(int argc, char** argv) {
   char cwd[len];
   getcwd(cwd, len);
   auto path = FileSystem::join(cwd, "cameras");
-  FastVector<CameraDTO*> cameras(50000);
+  FastVector<CameraDTO*> cameras(30000);
+  FastVector<std::string> texts(30000);
   JSON::loadData(path, cameras);
   std::cout << cameras[0]->getProperties() << std::endl;
   for (int i = 0; i < cameras.getLength(); i++) {
+    texts.append(cameras[i]->getAll());
     delete cameras[i];
+  }
+  std::cout << "Tokenizing...\n";
+  auto tokenized = TextProcessing::tokenizePlus(texts);
+  std::cout << "Tokenized...\n";
+  for (int i = 0; i < (*tokenized)[0]->getLength(); i++) {
+    auto current = (*tokenized)[0]->get(i);
+    std::cout << current << std::endl;
   }
   return 0;
 }

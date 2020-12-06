@@ -100,7 +100,7 @@ CameraDTO* JSON::parseJSON(const std::string& path) {
 }
 
 void JSON::loadData(const std::string& basePath, FastVector<CameraDTO*>& cameras) {
-  FastVector<std::string> files(10000);
+  FastVector<std::string> files(30000);
   FileSystem::getAllFiles(basePath, files);
   auto coreCount = std::thread::hardware_concurrency();
   std::thread handles[coreCount];
@@ -121,4 +121,5 @@ void JSON::loadData(const std::string& basePath, FastVector<CameraDTO*>& cameras
   for (int i = 0; i < coreCount; i++) {
     handles[i].join();
   }
+  std::cout << "Count: " << cameras.getLength() << std::endl;
 }
