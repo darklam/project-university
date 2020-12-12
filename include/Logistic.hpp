@@ -8,7 +8,7 @@ class Logistic {
     public:
         Logistic(int size);
         ~Logistic();
-        void fit(Vector2DFloat, FastVector<float> *, float);
+        void fit(Vector2DFloat, FastVector<int> *, float);
         int* predict(Vector2DFloat);
     private:
         float b0;
@@ -18,7 +18,7 @@ class Logistic {
         float learning_rate;
         void update_weights(FastVector<float> *, float, float);
         float calculate_pred(FastVector<float> *);
-        float cost_function(float, float);
+        float cost_function(int, float);
 };
 
 

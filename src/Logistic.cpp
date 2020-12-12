@@ -37,11 +37,11 @@ float Logistic::calculate_pred(FastVector<float> *x){
     return pred;
 }
 
-float Logistic::cost_function(float y, float pred){
+float Logistic::cost_function(int y, float pred){
     return (-y * log(pred) - (1 - y) * log(1 - pred));
 }
 
-void Logistic::fit(Vector2DFloat x_train, FastVector<float> *y_train, float learning_rate){
+void Logistic::fit(Vector2DFloat x_train, FastVector<int> *y_train, float learning_rate){
     this->learning_rate = learning_rate;
     int epocs = 1;
     int size = x_train->getLength();
