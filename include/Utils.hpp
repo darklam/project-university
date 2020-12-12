@@ -13,6 +13,7 @@ namespace Utils {
   void makeLowercase(std::string& str);
   void lowerAndClean(std::string& str);
   void getBatchIndex(int* start, int* end, int length, int coreCount, int currentCore);
+  std::string getEnvVar(std::string key);
 }
 
 #endif

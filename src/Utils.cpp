@@ -10,8 +10,8 @@
 #include "FastVector.hpp"
 
 void Utils::splitString(const std::string& str,
-                                              const std::string& delimiter,
-                                              FastVector<std::string>& tokens) {
+                        const std::string& delimiter,
+                        FastVector<std::string>& tokens) {
   std::size_t current, previous = 0;
   current = str.find(delimiter);
   while (current != std::string::npos) {
@@ -20,7 +20,6 @@ void Utils::splitString(const std::string& str,
     current = str.find(delimiter, previous);
   }
   tokens.append(str.substr(previous, current - previous));
-
 }
 
 void Utils::splitStringLite(const std::string& str,
@@ -111,7 +110,11 @@ void Utils::lowerAndClean(std::string& str) {
   Utils::makeLowercase(str);
 }
 
-void Utils::getBatchIndex(int* start, int* end, int length, int coreCount, int currentCore) {
+void Utils::getBatchIndex(int* start,
+                          int* end,
+                          int length,
+                          int coreCount,
+                          int currentCore) {
   int perCoreData = ceil(length / (double)coreCount);
   if (currentCore == coreCount - 1) {
     // The last core will process whatever is left
@@ -131,4 +134,12 @@ void Utils::getBatchIndex(int* start, int* end, int length, int coreCount, int c
       return;
     }
   }
+}
+
+std::string Utils::getEnvVar(std::string key) {
+  auto var = std::getenv(key.c_str());
+  if (var == nullptr) {
+    return "";
+  }
+  return std::string(var);
 }

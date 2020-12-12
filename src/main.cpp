@@ -85,11 +85,6 @@ int main(int argc, char** argv) {
   std::cout << "Fitting the vectorizer...\n";
   v.fit(tokenized);
   std::cout << "Vectorizer fitted...\n";
-  for (int i = 0; i < (*tokenized)[0]->getLength(); i++) {
-    auto current = (*tokenized)[0]->get(i);
-    std::cout << current << std::endl;
-  }
-
   for (int i = 0; i < tokenized->getLength(); i++) {
     delete (*tokenized)[i];
   }
