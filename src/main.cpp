@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
   FastVector<std::string> texts(30000);
   JSON::loadData(path, cameras);
   for (int i = 0; i < cameras.getLength(); i++) {
-    texts.append(cameras[i]->getAll());
+    texts.append(cameras[i]->getAllProperties());
     delete cameras[i];
   }
   std::cout << "Tokenizing...\n";
