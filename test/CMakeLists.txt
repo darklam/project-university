@@ -1,3 +1,4 @@
+find_package(Threads)
 configure_file(CMakeLists-gtest.txt googletest-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
   RESULT_VARIABLE result
@@ -39,6 +40,5 @@ add_executable(test_project ${MAIN_SOURCES} ${TEST_SOURCES})
 target_include_directories(test_project PRIVATE ../include)
 
 set_property(TARGET test_project PROPERTY CXX_STANDARD 17)
-target_link_libraries(test_project gtest)
-
+target_link_libraries(test_project gtest ${CMAKE_THREAD_LIBS_INIT})
 include(CPack)

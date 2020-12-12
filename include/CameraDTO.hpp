@@ -31,6 +31,8 @@ class CameraDTO {
 
   HashMap<CameraProperty*>* getProperties();
 
+  std::string getAllProperties();
+
  private:
   std::string title;
   std::string id;

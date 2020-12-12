@@ -150,6 +150,42 @@ class HashMap {
     }
   }
 
+  // This should return all the valus in the same order each time
+  // asssuming that no new items are added to the vector
+  void values(FastVector<T>& vals) {
+    for (int i = 0; i < this->bucketSize; i++) {
+      if (this->buckets[i] == nullptr) {
+        continue;
+      }
+
+      List<Item<T>*>* current = this->buckets[i];
+      for (Node<Item<T>*>* cur = current->getRoot(); cur != nullptr;
+           cur = *(cur->getNext())) {
+        Item<T>* currentBucket = cur->getValue();
+        T value = currentBucket->getValue();
+        vals.append(value);
+      }
+    }
+  }
+
+  void getEntries(FastVector<Entry<T>*>& entries) {
+    for (int i = 0; i < this->bucketSize; i++) {
+      if (this->buckets[i] == nullptr) {
+        continue;
+      }
+
+      List<Item<T>*>* current = this->buckets[i];
+      for (Node<Item<T>*>* cur = current->getRoot(); cur != nullptr;
+           cur = *(cur->getNext())) {
+        Entry<T>* e = new Entry<T>();
+        Item<T>* currentBucket = cur->getValue();
+        e->value = currentBucket->getValue();
+        e->key = currentBucket->getKey();
+        entries.append(e);
+      }
+    }
+  }
+
   ~HashMap() {
     for (int i = 0; i < this->bucketSize; i++) {
       List<Item<T>*>* current = this->buckets[i];

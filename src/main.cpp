@@ -10,6 +10,9 @@
 #include "List.hpp"
 #include "Set.hpp"
 #include "Utils.hpp"
+#include "FastVector.hpp"
+#include "Vectorizer.hpp"
+#include <TextProcessing.hpp>
 
 struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
@@ -64,28 +67,31 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
 }
 
 int main(int argc, char** argv) {
-  ProgramParams params;
-  parseArgs(argc, argv, &params);
   int len = 2048;
   char cwd[len];
   getcwd(cwd, len);
-  auto path = FileSystem::join(cwd, params.inName);
-  auto clique = new Clique();
-  auto pairs = CSV::ReadCSV(path);
-  PairsToClique(pairs, clique);
-  auto entries = clique->getEntries();
-  auto unique = RemoveDup(entries);
-  auto file = FileSystem::join(cwd, params.outName);
-  if (params.outType == "pairs") {
-    CSV::WriteCSVPairs(file, unique);
-  } else if (params.outType == "all") {
-    CSV::WriteCSV(file, unique);
+  auto path = FileSystem::join(cwd, "cameras");
+  FastVector<CameraDTO*> cameras(30000);
+  FastVector<std::string> texts(30000);
+  JSON::loadData(path, cameras);
+  for (int i = 0; i < cameras.getLength(); i++) {
+    texts.append(cameras[i]->getAllProperties());
+    delete cameras[i];
   }
-  for (auto i = 0; i < pairs->getLength(); i++) {
-    auto pair = (*pairs)[i];
-    delete pair;
+  std::cout << "Tokenizing...\n";
+  auto tokenized = TextProcessing::tokenizePlus(texts);
+  std::cout << "Tokenized...\n";
+  Vectorizer v;
+  std::cout << "Fitting the vectorizer...\n";
+  v.fit(tokenized);
+  std::cout << "Vectorizer fitted...\n";
+  for (int i = 0; i < tokenized->get(0)->getLength(); i++) {
+    auto curr = tokenized->get(0)->get(i);
+    std::cout << curr << std::endl;
   }
-  delete pairs;
-  delete clique;
+  for (int i = 0; i < tokenized->getLength(); i++) {
+    delete (*tokenized)[i];
+  }
+  delete tokenized;
   return 0;
 }

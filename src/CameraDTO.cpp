@@ -32,6 +32,28 @@ HashMap<CameraProperty*>* CameraDTO::getProperties() {
   return this->properties;
 }
 
+std::string CameraDTO::getAllProperties() {
+  FastVector<Entry<CameraProperty*>*> props;
+  this->properties->getEntries(props);
+
+  std::string all = "";
+  for (int i = 0; i < props.getLength(); i++) {
+    auto entry = props[i];
+    if (entry->value->isArray) {
+      auto val = entry->value->arrayValue;
+      for (int j = 0; j < val->getLength(); j++) {
+        all.append((*val)[j]);
+      }
+    } else {
+      all.append(entry->value->value);
+    }
+
+    delete entry;
+  }
+
+  return all;
+}
+
 CameraDTO::~CameraDTO() {
   auto allProps = this->properties->getEntries();
   for (auto i = allProps->getRoot(); i != nullptr; i = *(i->getNext())) {

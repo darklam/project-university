@@ -17,3 +17,5 @@ Release/**
 !Debug/.gitkeep
 !Release/.gitkeep
 !test/test.csv
+cameras
+sigmod_large_labelled_dataset.csv
