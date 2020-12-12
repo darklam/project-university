@@ -15,7 +15,6 @@ class Logistic {
         int size;
         CustomVector<float> *b1;
         CustomVector<float> *loss;
-        float e = 2.71828;
         float learning_rate;
         void update_weights(FastVector<float> *, float, float);
         float calculate_pred(FastVector<float> *);

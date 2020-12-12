@@ -33,12 +33,12 @@ float Logistic::calculate_pred(FastVector<float> *x){
     for(int i = 0; i < this->size; i++){
         p += this->b1->get(i) * x->get(i);
     }
-    float pred = 1 / (1 + pow(this->e, -p));
+    float pred = 1 / (1 + exp(-p));
     return pred;
 }
 
 float Logistic::cost_function(float y, float pred){
-    return y - pred;
+    return (-y * log(pred) - (1 - y) * log(1 - pred));
 }
 
 void Logistic::fit(Vector2DFloat x_train, FastVector<float> *y_train, float learning_rate){

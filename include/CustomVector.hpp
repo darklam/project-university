@@ -63,10 +63,10 @@ class CustomVector {
       exit(EXIT_FAILURE);
     }
     if (chunk == this->lastUsedPlace) {
-      this->lastUsed[placeInChunk] = T;
+      this->lastUsed[placeInChunk] = value;
     }
     T* current = this->chunks->get(chunk);
-    current[placeInChunk] = T;
+    current[placeInChunk] = value;
   }
 
   T operator[](int index) { return this->get(index); }
