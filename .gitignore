@@ -8,6 +8,7 @@ analysis.txt
 gmon.out
 camera_specs
 2013_camera_specs
+cameras
 *.csv
 *.py
 build

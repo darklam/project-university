@@ -29,6 +29,22 @@ void PairsToClique(CustomVector<Pair*>* pairs, Clique* clique) {
   }
 }
 
+void deleteEntries(List<Entry<Set*>*>* entries){
+  for(auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())){
+    auto cur = i->getValue();
+    auto item = cur->value;
+    auto items = item->getItems();
+    for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
+      auto val = j->getValue();
+      delete val;
+    }
+    delete items;
+    delete item;
+    delete cur;
+  }
+  delete entries;
+}
+
 List<Entry<Set*>*>* RemoveDup(List<Entry<Set*>*>* entries) {
   HashMap<Set*> dedupe;
   for (auto j = entries->getRoot(); j != nullptr; j = *(j->getNext())) {
@@ -74,20 +90,24 @@ int main(int argc, char** argv) {
   auto path = FileSystem::join(cwd, params.inName);
   auto clique = new Clique();
   auto pairs = CSV::ReadCSV(path);
+  std::cout << "Input done" << std::endl;
   PairsToClique(pairs, clique);
+  std::cout << "Pairs to clique done" << std::endl;
   auto matches = clique->getPositiveEntries();
-  // auto nomatches = clique->getNegativeEntries();
   auto uniquematches = RemoveDup(matches);
-  auto file = FileSystem::join(cwd, params.outName);
-  if (params.outType == "pairs") {
-    CSV::WriteCSVPairs(file, uniquematches);
-  } else if (params.outType == "all") {
-    CSV::WriteCSV(file, uniquematches);
-  }
+  std::cout << "Duplicates done" << std::endl;
+  deleteEntries(uniquematches);
+  std::cout << "Delete  done" << std::endl;
+  auto nomatches = clique->getNegativeEntries();
+  auto unique = RemoveDup(nomatches);
+  std::cout << "Duplicates1  done" << std::endl;
+  deleteEntries(unique);
+  std::cout << "Delete1 done" << std::endl;
   for (auto i = 0; i < pairs->getLength(); i++) {
     auto pair = (*pairs)[i];
     delete pair;
   }
+  std::cout << "Delete3 done" << std::endl;
   delete pairs;
   delete clique;
   return 0;
