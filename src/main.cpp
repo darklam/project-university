@@ -85,10 +85,12 @@ int main(int argc, char** argv) {
   std::cout << "Fitting the vectorizer...\n";
   v.fit(tokenized);
   std::cout << "Vectorizer fitted...\n";
-  for (int i = 0; i < tokenized->get(0)->getLength(); i++) {
-    auto curr = tokenized->get(0)->get(i);
-    std::cout << curr << std::endl;
+  float** vectors = new float*[texts.getLength()];
+  v.transform(tokenized, vectors);
+  for (int i = 0; i < texts.getLength(); i++) {
+    delete[] vectors[i];
   }
+  delete[] vectors;
   for (int i = 0; i < tokenized->getLength(); i++) {
     delete (*tokenized)[i];
   }

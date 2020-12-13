@@ -56,8 +56,8 @@ void Vectorizer::fit(Vector2D sentences) {
                 if (!res.hasValue) {
                   auto info = new WordInfo();
                   m.lock();
+                  info->index = this->vocabSize++;
                   this->vocab->set(word, info);
-                  this->vocabSize++;
                   m.unlock();
                 }
               }
@@ -117,8 +117,8 @@ void Vectorizer::fit(Vector2D sentences) {
 
         if (!res.hasValue) {
           auto info = new WordInfo();
+          info->index = this->vocabSize++;
           this->vocab->set(word, info);
-          this->vocabSize++;
         }
       }
     }
@@ -146,7 +146,7 @@ void Vectorizer::getVocab(FastVector<Entry<WordInfo*>*>& vec) {
 }
 
 void Vectorizer::transform(Vector2D sentences,
-                           FastVector<FastVector<float>*>& vectors) {
+                           float** vectors) {
   auto useThreads = Utils::getEnvVar("USE_THREADS");
 
   FastVector<Entry<WordInfo*>*> vocabEntries;
@@ -165,7 +165,7 @@ void Vectorizer::transform(Vector2D sentences,
         for (int i = start; i < end; i++) {
           auto sentence = (*sentences)[i];
           auto sentenceLength = sentence->getLength();
-          auto vec = new FastVector<float>(this->vocabSize);
+          float* vec = new float[this->vocabSize];
           for (int j = 0; j < vocabEntries.getLength(); j++) {
             auto entry = vocabEntries[j];
             auto word = entry->key;
@@ -179,10 +179,10 @@ void Vectorizer::transform(Vector2D sentences,
             }
             auto termFrequency = occurences / (float)sentenceLength;
             auto value = termFrequency * info->idf;
-            vec->append(value);
+            vec[j] = value;
           }
           vectorsMutex.lock();
-          vectors.set(i, vec);
+          vectors[i] = vec;
           vectorsMutex.unlock();
         }
       });
@@ -197,23 +197,35 @@ void Vectorizer::transform(Vector2D sentences,
     for (int i = 0; i < sentences->getLength(); i++) {
       auto sentence = (*sentences)[i];
       auto sentenceLength = sentence->getLength();
-      auto vec = new FastVector<float>(this->vocabSize);
-      for (int j = 0; j < vocabEntries.getLength(); j++) {
-        auto entry = vocabEntries[j];
-        auto word = entry->key;
-        auto info = entry->value;
-        int occurences = 0;
-        for (int k = 0; k < sentenceLength; k++) {
-          auto currentWord = (*sentence)[k];
-          if (currentWord == word) {
-            occurences++;
-          }
-        }
-        auto termFrequency = occurences / (float)sentenceLength;
-        auto value = termFrequency * info->idf;
-        vec->append(value);
+      float* vec = new float[this->vocabSize];
+      for (int j = 0; j < this->vocabSize; j++) {
+        vec[j] = 0;
       }
-      vectors.set(i, vec);
+      HashMap<int> occurencesMap;
+      for (int j = 0; j < sentenceLength; j++) {
+        auto word = (*sentence)[j];
+        HashResult<int> res;
+        occurencesMap.get(word, &res);
+        occurencesMap.set(word, res.hasValue ? res.value + 1 : 1);
+      }
+      for (int j = 0; j < sentenceLength; j++) { 
+        auto word = (*sentence)[j];
+        HashResult<WordInfo*> res;
+        this->vocab->get(word, &res);
+        if (!res.hasValue) {
+          std::cout << "This is much very wrong\n";
+          exit(EXIT_FAILURE);
+        }
+        HashResult<int> freq;
+        occurencesMap.get(word, &freq);
+        vec[res.value->index] = freq.value * res.value->idf;
+        vec[res.value->index] /= sentenceLength;
+      }
+      vectors[i] = vec;
     }
   }
+}
+
+int Vectorizer::getVocabSize() {
+  return this->vocabSize;
 }

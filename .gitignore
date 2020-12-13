@@ -19,3 +19,4 @@ Release/**
 !test/test.csv
 cameras
 sigmod_large_labelled_dataset.csv
+cameras-small
