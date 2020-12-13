@@ -20,11 +20,10 @@ struct ProgramParams {
 void PairsToClique(CustomVector<Pair*>* pairs, Clique* clique) {
   for (auto i = 0; i < pairs->getLength(); i++) {
     auto pair = (*pairs)[i];
-    // std::cout << pair->getId1() << " " << pair->getId2() << " " << pair->value << std::endl;
     if (pair->value == 0) {
       clique->NegativePair(pair->getId1(), pair->getId2());
     }else{
-      clique->Pair(pair->getId1(), pair->getId2());
+      clique->setPair(pair->getId1(), pair->getId2());
     }
   }
 }
@@ -81,6 +80,56 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
   }
 }
 
+
+CustomVector<Pair*>* createDataset(List<Entry<Set*>*>* positive, Clique *clique){
+  auto pairs = new CustomVector<Pair*>(10000);
+  std::cout << "starting positives..." << std::endl;
+  for (auto i = positive->getRoot(); i != nullptr; i = *(i->getNext())) {
+    auto cur = i->getValue();
+    auto item = cur->value;
+    auto items = item->getItems();
+    for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
+      auto val = j->getValue();
+      for (auto k = *(j->getNext()); k != nullptr; k = *(k->getNext())) {
+        auto pair = new Pair();
+        auto val1 = k->getValue();
+        pair->setValue(1);
+        pair->setIds(val->value, val1->value);
+        pairs->add(pair);
+      }
+      delete val;
+    }
+    delete items;
+  }
+  std::cout << "starting negatives..." << std::endl;
+  for (auto i = positive->getRoot(); i != nullptr; i = *(i->getNext())) {
+    auto cur = i->getValue();
+    auto item = cur->value;
+    auto items = item->getItems();
+    auto negatives = clique->getNegatives(items->getRoot()->getValue()->value);
+    if(negatives == nullptr){
+      delete items;
+      delete negatives;
+      continue;
+    }
+    for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
+      auto val = j->getValue();
+      for (auto k = negatives->getRoot(); k != nullptr; k = *(k->getNext())) {
+        auto neg = k->getValue();
+        auto pair = new Pair();
+        pair->setValue(0);
+        pair->setIds(val->value, neg->value);
+        pairs->add(pair);
+      }
+      delete val;
+    }
+    delete negatives;
+    delete items;
+  }
+  return pairs;
+}
+
+
 int main(int argc, char** argv) {
   ProgramParams params;
   parseArgs(argc, argv, &params);
@@ -93,22 +142,31 @@ int main(int argc, char** argv) {
   std::cout << "Input done" << std::endl;
   PairsToClique(pairs, clique);
   std::cout << "Pairs to clique done" << std::endl;
-  auto matches = clique->getPositiveEntries();
-  auto uniquematches = RemoveDup(matches);
+  auto positives = clique->getPositiveEntries();
+  auto pos_unique = RemoveDup(positives);
   std::cout << "Duplicates done" << std::endl;
-  deleteEntries(uniquematches);
-  std::cout << "Delete  done" << std::endl;
-  auto nomatches = clique->getNegativeEntries();
-  auto unique = RemoveDup(nomatches);
+  auto negatives = clique->getNegativeEntries();
+  auto neg_unique = RemoveDup(negatives);
   std::cout << "Duplicates1  done" << std::endl;
-  deleteEntries(unique);
+  std::cout << "start merging" << std::endl;
+  auto _pairs = createDataset(pos_unique, clique);
+
+  deleteEntries(pos_unique);
+  std::cout << "Delete  done" << std::endl;
+  deleteEntries(neg_unique);
   std::cout << "Delete1 done" << std::endl;
   for (auto i = 0; i < pairs->getLength(); i++) {
     auto pair = (*pairs)[i];
     delete pair;
   }
   std::cout << "Delete3 done" << std::endl;
+  for (auto i = 0; i < _pairs->getLength(); i++) {
+    auto pair = (*_pairs)[i];
+    delete pair;
+  }
+  std::cout << "Delete4 done" << std::endl;
   delete pairs;
+  delete _pairs;
   delete clique;
   return 0;
 }

@@ -89,7 +89,7 @@ void CSV::WriteCSVPairs(std::string path, List<Entry<Set*>*>* entries){
                 fprintf(file, "%s, %s\n", val->value.c_str(), val1->value.c_str());
             }
         }
-        
+        delete items;
     }
     // myfile.close();
     fclose(file);

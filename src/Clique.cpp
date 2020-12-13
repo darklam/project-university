@@ -17,7 +17,7 @@ Clique::~Clique(){
 }
 
 
-void Clique::Pair(std::string id1, std::string id2){
+void Clique::setPair(std::string id1, std::string id2){
     if(this->existInPositives(id1, id2)){
         return;
     }
@@ -220,4 +220,15 @@ bool Clique::existInNegatives(std::string id1, std::string id2){
         return false;
     }
     return false;
+}
+
+List<Entry<std::string>*>* Clique::getNegatives(std::string id){
+    HashResult<Set*> neg1;
+    this->Negative->get(id, &neg1);
+
+    if(neg1.hasValue){
+        return neg1.value->getItems();
+    }else{
+        return nullptr;
+    }
 }
