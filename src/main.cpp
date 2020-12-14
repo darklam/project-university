@@ -45,24 +45,59 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
   }
 }
 
+
+
 int main(int argc, char** argv) {
+  // Part1
   ProgramParams params;
   parseArgs(argc, argv, &params);
   int len = 2048;
-  char cwd[len];
-  getcwd(cwd, len);
-  auto path = FileSystem::join(cwd, params.inName);
+  char cwd1[len];
+  getcwd(cwd1, len);
+  auto path1 = FileSystem::join(cwd1, params.inName);
   std::cout << "Getting input..." << std::endl;
-  auto pairs = CSV::ReadCSV(path);
+  auto pairs = CSV::ReadCSV(path1);
   std::cout << "Creating Dataset..." << std::endl;
   auto _pairs = Pairs::PairsToDataset(pairs);
   auto pairEntries = _pairs->getEntries();
-  std::cout << pairEntries->getLength() << std::endl;
-  // for(int i = 0; i < _pairs->getLength(); i++){
-  //   std::cout << _pairs->get(i) << std::endl;
-  // }
+  int outputSize = pairEntries->getLength();
+  std::cout << outputSize << std::endl;
+  // Part 2
+  char cwd[len];
+  getcwd(cwd, len);
+  auto path = FileSystem::join(cwd, "cameras");
+  FastVector<CameraDTO*> cameras(30000);
+  FastVector<std::string> texts(30000);
+  JSON::loadData(path, cameras);
+  for (int i = 0; i < cameras.getLength(); i++) {
+    texts.append(cameras[i]->getAllProperties());
+  }
+  std::cout << "Tokenizing...\n";
+  auto tokenized = TextProcessing::tokenizePlus(texts);
+  std::cout << "Tokenized...\n";
+  Vectorizer v;
+  std::cout << "Fitting the vectorizer...\n";
+  v.fit(tokenized);
+  std::cout << "Vectorizer fitted...\n";
+  float** vectors = new float*[texts.getLength()];
+  v.transform(tokenized, vectors);
+  std::cout << "Transform ended..." << std::endl;
+  HashMap<float*>* map = new HashMap<float*>(30000);
+  for(int i = 0; i < cameras.getLength(); i++){
+    map->set(cameras[i]->getId(), vectors[i]);
+  }
+  std::cout << "Creating final dataset" << std::endl;
+  for (int i = 0; i < texts.getLength(); i++) {
+    delete cameras[i];
+    delete[] vectors[i];
+  }
+  delete[] vectors;
+  for (int i = 0; i < tokenized->getLength(); i++) {
+    delete (*tokenized)[i];
+  }
+  delete tokenized;
   Pairs::deleteDatasetEntries(pairEntries);
-
   delete _pairs;
+  delete map;
   return 0;
 }

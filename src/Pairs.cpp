@@ -56,7 +56,7 @@ std::string Pairs::sortIds(std::string id1, std::string id2){
 }
 
 void Pairs::deleteDatasetEntries(List<Entry<int> *> * entries){
-    for(auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())){
+  for(auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())){
     auto cur = i->getValue();
     delete cur;
   }
