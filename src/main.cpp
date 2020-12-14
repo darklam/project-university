@@ -89,15 +89,12 @@ int main(int argc, char** argv) {
   FastVector<Entry<WordInfo*>*> vec;
   v.getVocab(vec);
   std::cout << "Vocab size: " << vec.getLength() << std::endl;
-  for (int i = 0; i < vec.getLength(); i++) {
-    std::cout << vec[i]->key << std::endl;
+  float** vectors = new float*[texts.getLength()];
+  v.transform(tokenized, vectors);
+  for (int i = 0; i < texts.getLength(); i++) {
+    delete[] vectors[i];
   }
-  // float** vectors = new float*[texts.getLength()];
-  // v.transform(tokenized, vectors);
-  // for (int i = 0; i < texts.getLength(); i++) {
-  //   delete[] vectors[i];
-  // }
-  // delete[] vectors;
+  delete[] vectors;
   for (int i = 0; i < tokenized->getLength(); i++) {
     delete (*tokenized)[i];
   }
