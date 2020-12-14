@@ -98,8 +98,10 @@ std::string Utils::removeSpecial(std::string& str) {
   out.reserve(str.length());
   for (int i = 0; i < str.length(); i++) {
     auto c = str[i];
-    if (std::isalnum(c) || std::isspace(c)) {
+    if (std::isalnum(c)) {
       out += c;
+    } else {
+      out += " ";
     }
   }
 
@@ -139,8 +141,8 @@ std::string Utils::fixWhitespace(std::string& str) {
 }
 
 void Utils::lowerAndClean(std::string& str) {
-  auto curr = Utils::fixWhitespace(str);
-  curr = Utils::removeSpecial(curr);
+  auto curr = Utils::removeSpecial(str);
+  curr = Utils::fixWhitespace(curr);
   if (curr[curr.length() - 1] == ' ') {
     curr.erase(curr.length() - 1, 1);
   }

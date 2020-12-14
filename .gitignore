@@ -20,3 +20,4 @@ Release/**
 cameras
 sigmod_large_labelled_dataset.csv
 cameras-small
+*.tar.gz

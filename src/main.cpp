@@ -75,7 +75,8 @@ int main(int argc, char** argv) {
   FastVector<std::string> texts(30000);
   JSON::loadData(path, cameras);
   for (int i = 0; i < cameras.getLength(); i++) {
-    texts.append(cameras[i]->getAllProperties());
+    auto str = cameras[i]->getAllProperties();
+    texts.append(str);
     delete cameras[i];
   }
   std::cout << "Tokenizing...\n";
@@ -84,13 +85,19 @@ int main(int argc, char** argv) {
   Vectorizer v;
   std::cout << "Fitting the vectorizer...\n";
   v.fit(tokenized);
-  std::cout << "Vectorizer fitted...\n";
-  float** vectors = new float*[texts.getLength()];
-  v.transform(tokenized, vectors);
-  for (int i = 0; i < texts.getLength(); i++) {
-    delete[] vectors[i];
+  std::cout << "Vectorizer fitted...\n";\
+  FastVector<Entry<WordInfo*>*> vec;
+  v.getVocab(vec);
+  std::cout << "Vocab size: " << vec.getLength() << std::endl;
+  for (int i = 0; i < vec.getLength(); i++) {
+    std::cout << vec[i]->key << std::endl;
   }
-  delete[] vectors;
+  // float** vectors = new float*[texts.getLength()];
+  // v.transform(tokenized, vectors);
+  // for (int i = 0; i < texts.getLength(); i++) {
+  //   delete[] vectors[i];
+  // }
+  // delete[] vectors;
   for (int i = 0; i < tokenized->getLength(); i++) {
     delete (*tokenized)[i];
   }
