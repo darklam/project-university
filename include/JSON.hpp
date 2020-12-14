@@ -3,11 +3,11 @@
 
 #include "CameraDTO.hpp"
 #include "List.hpp"
-#include "CustomVector.hpp"
+#include "FastVector.hpp"
 
 namespace JSON {
   CameraDTO* parseJSON(const std::string& path);
-  CustomVector<CameraDTO*>* loadData(const std::string& basePath);
+  void loadData(const std::string& basePath, FastVector<CameraDTO*>& cameras);
 }
 
 #endif

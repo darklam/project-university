@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(project VERSION 0.1.0)
+find_package(Threads)
 
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 add_executable(project ${SOURCES})
@@ -12,5 +13,5 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 add_subdirectory(test)
-
+target_link_libraries(project ${CMAKE_THREAD_LIBS_INIT})
 include(CPack)

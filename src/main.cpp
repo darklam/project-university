@@ -10,6 +10,10 @@
 #include "List.hpp"
 #include "Set.hpp"
 #include "Utils.hpp"
+#include "FastVector.hpp"
+#include "Vectorizer.hpp"
+#include "Pairs.hpp"
+#include <TextProcessing.hpp>
 
 struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
@@ -17,45 +21,6 @@ struct ProgramParams {
   std::string inName = "W_Dataset.csv";
 };
 
-void PairsToClique(CustomVector<Pair*>* pairs, Clique* clique) {
-  for (auto i = 0; i < pairs->getLength(); i++) {
-    auto pair = (*pairs)[i];
-    if (pair->value == 0) {
-      clique->NegativePair(pair->getId1(), pair->getId2());
-    }else{
-      clique->setPair(pair->getId1(), pair->getId2());
-    }
-  }
-}
-
-void deleteEntries(List<Entry<Set*>*>* entries){
-  for(auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())){
-    auto cur = i->getValue();
-    auto item = cur->value;
-    auto items = item->getItems();
-    for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
-      auto val = j->getValue();
-      delete val;
-    }
-    delete items;
-    delete item;
-    delete cur;
-  }
-  delete entries;
-}
-
-List<Entry<Set*>*>* RemoveDup(List<Entry<Set*>*>* entries) {
-  HashMap<Set*> dedupe;
-  for (auto j = entries->getRoot(); j != nullptr; j = *(j->getNext())) {
-    auto val = j->getValue();
-    auto item = val->value;
-    std::string key = std::to_string((intptr_t)item);
-    dedupe.set(key, item);
-    delete val;
-  }
-  delete entries;
-  return dedupe.getEntries();
-}
 
 void parseArgs(int argc, char** argv, ProgramParams* params) {
   for (int i = 0; i < argc; i++) {
@@ -80,56 +45,6 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
   }
 }
 
-
-CustomVector<Pair*>* createDataset(List<Entry<Set*>*>* positive, Clique *clique){
-  auto pairs = new CustomVector<Pair*>(10000);
-  std::cout << "starting positives..." << std::endl;
-  for (auto i = positive->getRoot(); i != nullptr; i = *(i->getNext())) {
-    auto cur = i->getValue();
-    auto item = cur->value;
-    auto items = item->getItems();
-    for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
-      auto val = j->getValue();
-      for (auto k = *(j->getNext()); k != nullptr; k = *(k->getNext())) {
-        auto pair = new Pair();
-        auto val1 = k->getValue();
-        pair->setValue(1);
-        pair->setIds(val->value, val1->value);
-        pairs->add(pair);
-      }
-      delete val;
-    }
-    delete items;
-  }
-  std::cout << "starting negatives..." << std::endl;
-  for (auto i = positive->getRoot(); i != nullptr; i = *(i->getNext())) {
-    auto cur = i->getValue();
-    auto item = cur->value;
-    auto items = item->getItems();
-    auto negatives = clique->getNegatives(items->getRoot()->getValue()->value);
-    if(negatives == nullptr){
-      delete items;
-      delete negatives;
-      continue;
-    }
-    for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
-      auto val = j->getValue();
-      for (auto k = negatives->getRoot(); k != nullptr; k = *(k->getNext())) {
-        auto neg = k->getValue();
-        auto pair = new Pair();
-        pair->setValue(0);
-        pair->setIds(val->value, neg->value);
-        pairs->add(pair);
-      }
-      delete val;
-    }
-    delete negatives;
-    delete items;
-  }
-  return pairs;
-}
-
-
 int main(int argc, char** argv) {
   ProgramParams params;
   parseArgs(argc, argv, &params);
@@ -137,36 +52,17 @@ int main(int argc, char** argv) {
   char cwd[len];
   getcwd(cwd, len);
   auto path = FileSystem::join(cwd, params.inName);
-  auto clique = new Clique();
+  std::cout << "Getting input..." << std::endl;
   auto pairs = CSV::ReadCSV(path);
-  std::cout << "Input done" << std::endl;
-  PairsToClique(pairs, clique);
-  std::cout << "Pairs to clique done" << std::endl;
-  auto positives = clique->getPositiveEntries();
-  auto pos_unique = RemoveDup(positives);
-  std::cout << "Duplicates done" << std::endl;
-  auto negatives = clique->getNegativeEntries();
-  auto neg_unique = RemoveDup(negatives);
-  std::cout << "Duplicates1  done" << std::endl;
-  std::cout << "start merging" << std::endl;
-  auto _pairs = createDataset(pos_unique, clique);
+  std::cout << "Creating Dataset..." << std::endl;
+  auto _pairs = Pairs::PairsToDataset(pairs);
+  auto pairEntries = _pairs->getEntries();
+  std::cout << pairEntries->getLength() << std::endl;
+  // for(int i = 0; i < _pairs->getLength(); i++){
+  //   std::cout << _pairs->get(i) << std::endl;
+  // }
+  Pairs::deleteDatasetEntries(pairEntries);
 
-  deleteEntries(pos_unique);
-  std::cout << "Delete  done" << std::endl;
-  deleteEntries(neg_unique);
-  std::cout << "Delete1 done" << std::endl;
-  for (auto i = 0; i < pairs->getLength(); i++) {
-    auto pair = (*pairs)[i];
-    delete pair;
-  }
-  std::cout << "Delete3 done" << std::endl;
-  for (auto i = 0; i < _pairs->getLength(); i++) {
-    auto pair = (*_pairs)[i];
-    delete pair;
-  }
-  std::cout << "Delete4 done" << std::endl;
-  delete pairs;
   delete _pairs;
-  delete clique;
   return 0;
 }

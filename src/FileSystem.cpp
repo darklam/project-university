@@ -11,6 +11,7 @@
 #include "List.hpp"
 #include <string>
 #include <iostream>
+#include <functional>
 
 bool FileSystem::isDirectory(const std::string& path) {
   struct stat path_stat;
@@ -24,11 +25,9 @@ std::string FileSystem::join(const std::string& a, const std::string& b) {
   return fin;
 }
 
-
-List<std::string>* FileSystem::listContents(const std::string& path, char type) {
+void FileSystem::listContents(const std::string& path, char type, FastVector<std::string>& files) {
   DIR* d;
   struct dirent* dir;
-  auto l = new List<std::string>();
   d = opendir(path.c_str());
   if (d == NULL) {
     std::cout << "Something happened when listing directory " << path << std::endl;
@@ -49,33 +48,53 @@ List<std::string>* FileSystem::listContents(const std::string& path, char type) 
     }
     if (check) {
       auto curr = std::string(dir->d_name);
-      l->add(curr);
+      files.append(curr);
     }
   }
   closedir(d);
-
-  return l;
 }
 
-List<std::string>* FileSystem::getAllFiles(const std::string& path) {
-  auto result = FileSystem::listContents(path, 'd');
-  auto files = new List<std::string>();
-  for (auto current = result->getRoot(); current != nullptr; current = *(current->getNext())) {
-      auto value = current->getValue();
+void FileSystem::getAllFiles(const std::string& path, FastVector<std::string>& files) {
+  FastVector<std::string> result(15);
+  FileSystem::listContents(path, 'd', result);
+  for (int i = 0; i < result.getLength(); i++) {
+
+      auto value = result[i];
       if (value.compare("..") == 0 || value.compare(".") == 0) {
           continue;
       }
       auto currentPath = FileSystem::join(path, value);
-      auto currentFiles = FileSystem::listContents(currentPath, 'f');
-      for (auto j = currentFiles->getRoot(); j != nullptr; j = *(j->getNext())) {
-          auto val = j->getValue();
+      FastVector<std::string> currentFiles(2000);
+      FileSystem::listContents(currentPath, 'f', currentFiles);
+      for (int j = 0; j < currentFiles.getLength(); j++) {
+          auto val = currentFiles[j];
           auto fullPath = FileSystem::join(currentPath, val);
-          files->add(fullPath);
+          files.append(fullPath);
       }
-      delete currentFiles;
+  }
+}
+
+void FileSystem::readFile(const std::string& path, std::function<void(std::string&)> func) {
+  FILE* file = fopen(path.c_str(), "r");
+  size_t len = 0;
+  if (!file) {
+    printf("Shit just got real, file: %s\n", path.c_str());
+    exit(EXIT_FAILURE);
+  }
+  char* ln = nullptr;
+  bool finished = false;
+  while (!finished) {
+    int length = getline(&ln, &len, file);
+    if (length == -1) {
+      finished = true;
+      continue;
+    }
+    std::string line(ln);
+    func(line);
   }
 
-  delete result;
-
-  return files;
+  if (ln != nullptr) {
+    free(ln);
+  }
+  fclose(file);
 }
