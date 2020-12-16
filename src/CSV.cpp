@@ -57,7 +57,7 @@ CustomVector<Pair*>* CSV::ReadCSV(const std::string& path){
         }
         auto pair = new Pair();
         std::string tokens[3];
-        Utils::splitStringLite(std::string(line), ";", tokens, 3);
+        Utils::splitStringLite(std::string(line), ",", tokens, 3);
         if (tokens[0].length() == 0 || tokens[1].length() == 0) {
             printf("Something really bad happened\n");
         }
