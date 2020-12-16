@@ -12,6 +12,7 @@
 #include "Utils.hpp"
 #include "FastVector.hpp"
 #include "Vectorizer.hpp"
+#include "BowVectorizer.hpp"
 #include <TextProcessing.hpp>
 
 struct ProgramParams {
@@ -82,14 +83,14 @@ int main(int argc, char** argv) {
   std::cout << "Tokenizing...\n";
   auto tokenized = TextProcessing::tokenizePlus(texts);
   std::cout << "Tokenized...\n";
-  Vectorizer v;
+  BowVectorizer v;
   std::cout << "Fitting the vectorizer...\n";
   v.fit(tokenized);
   std::cout << "Vectorizer fitted...\n";\
-  FastVector<Entry<WordInfo*>*> vec;
+  FastVector<Entry<int>*> vec;
   v.getVocab(vec);
   std::cout << "Vocab size: " << vec.getLength() << std::endl;
-  float** vectors = new float*[texts.getLength()];
+  int** vectors = new int*[texts.getLength()];
   v.transform(tokenized, vectors);
   for (int i = 0; i < texts.getLength(); i++) {
     delete[] vectors[i];
