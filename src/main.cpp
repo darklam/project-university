@@ -12,7 +12,10 @@
 #include "Utils.hpp"
 #include "FastVector.hpp"
 #include "Vectorizer.hpp"
+#include "Pairs.hpp"
 #include <TextProcessing.hpp>
+#include "Logistic.hpp"
+#include "Metrics.hpp"
 
 struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
@@ -20,28 +23,6 @@ struct ProgramParams {
   std::string inName = "W_Dataset.csv";
 };
 
-void PairsToClique(CustomVector<Pair*>* pairs, Clique* clique) {
-  for (auto i = 0; i < pairs->getLength(); i++) {
-    auto pair = (*pairs)[i];
-    if (pair->value == 0) {
-      continue;
-    }
-    clique->Pair(pair->getId1(), pair->getId2());
-  }
-}
-
-List<Entry<Set*>*>* RemoveDup(List<Entry<Set*>*>* entries) {
-  HashMap<Set*> dedupe;
-  for (auto j = entries->getRoot(); j != nullptr; j = *(j->getNext())) {
-    auto val = j->getValue();
-    auto item = val->value;
-    std::string key = std::to_string((intptr_t)item);
-    dedupe.set(key, item);
-    delete val;
-  }
-  delete entries;
-  return dedupe.getEntries();
-}
 
 void parseArgs(int argc, char** argv, ProgramParams* params) {
   for (int i = 0; i < argc; i++) {
@@ -66,17 +47,40 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
   }
 }
 
+
+
 int main(int argc, char** argv) {
+  // Part1
+  ProgramParams params;
+  parseArgs(argc, argv, &params);
   int len = 2048;
+  char cwd1[len];
+  getcwd(cwd1, len);
+  auto path1 = FileSystem::join(cwd1, params.inName);
+  std::cout << "Getting input..." << std::endl;
+  auto pairs = CSV::ReadCSV(path1);
+
+  std::cout << "Creating Dataset..." << std::endl;
+  auto _pairs = Pairs::PairsToDataset(pairs);
+
+  FastVector<std::string> dataset(100000);
+  _pairs->values(dataset);
+  delete _pairs;
+  int dataset_size = dataset.getLength();
+
+  /*--------------------  Part 2 -----------------------------------*/
   char cwd[len];
   getcwd(cwd, len);
   auto path = FileSystem::join(cwd, "cameras");
   FastVector<CameraDTO*> cameras(30000);
   FastVector<std::string> texts(30000);
+  HashMap<int> ids(30000);
+  std::cout << "Getting input..." << std::endl;
   JSON::loadData(path, cameras);
   for (int i = 0; i < cameras.getLength(); i++) {
     auto str = cameras[i]->getAllProperties();
     texts.append(str);
+    ids.set(cameras[i]->getId(), i);
     delete cameras[i];
   }
   std::cout << "Tokenizing...\n";
@@ -85,19 +89,41 @@ int main(int argc, char** argv) {
   Vectorizer v;
   std::cout << "Fitting the vectorizer...\n";
   v.fit(tokenized);
-  std::cout << "Vectorizer fitted...\n";\
+  std::cout << "Vectorizer fitted...\n";
   FastVector<Entry<WordInfo*>*> vec;
   v.getVocab(vec);
+  int vocab_size = vec.getLength();
   std::cout << "Vocab size: " << vec.getLength() << std::endl;
   float** vectors = new float*[texts.getLength()];
   v.transform(tokenized, vectors);
-  for (int i = 0; i < texts.getLength(); i++) {
-    delete[] vectors[i];
-  }
-  delete[] vectors;
+  std::cout << "Transform ended...\n";
   for (int i = 0; i < tokenized->getLength(); i++) {
     delete (*tokenized)[i];
   }
   delete tokenized;
+
+  /*--------------------  Part 3 -----------------------------------*/
+  int train_size = (int)(dataset_size * 0.8);
+  int test_size = dataset_size - train_size;
+  std::cout << "Dataset size: " << dataset_size << std::endl;
+  std::cout << "Train size: " << train_size << std::endl;
+  std::cout << "Test size: " << test_size << std::endl;
+  Logistic<float> model(vocab_size);
+  std::cout << "Fitting model...\n";
+  model.fit(dataset, vectors, ids, train_size, 0.01);
+  FastVector<int> y_true(200);
+  auto pred = model.predict(dataset, vectors, ids, dataset_size, train_size, y_true);
+  std::cout << "F1: " << Metrics::f1_score(y_true, pred) << std::endl;
+  std::cout << "Precision: " << Metrics::precision_score(y_true, pred) << std::endl;
+  std::cout << "Recall: " << Metrics::recall_score(y_true, pred) << std::endl;
+  std::cout << "Accuracy: " << Metrics::accuracy_score(y_true, pred) << std::endl;
+  for(int i = 0; i < y_true.getLength(); i++){
+    std::cout << y_true.get(i) << " ";
+  }
+  delete[] pred;
+  for (int i = 0; i < texts.getLength(); i++) {
+    delete[] vectors[i];
+  }
+  delete[] vectors;
   return 0;
 }
