@@ -10,8 +10,8 @@
 #include "FastVector.hpp"
 
 void Utils::splitString(const std::string& str,
-                                              const std::string& delimiter,
-                                              FastVector<std::string>& tokens) {
+                        const std::string& delimiter,
+                        FastVector<std::string>& tokens) {
   std::size_t current, previous = 0;
   current = str.find(delimiter);
   while (current != std::string::npos) {
@@ -20,7 +20,6 @@ void Utils::splitString(const std::string& str,
     current = str.find(delimiter, previous);
   }
   tokens.append(str.substr(previous, current - previous));
-
 }
 
 void Utils::splitStringLite(const std::string& str,
@@ -89,29 +88,76 @@ std::string Utils::trimString(std::string& str) {
 }
 
 void Utils::makeLowercase(std::string& str) {
-  std::transform(str.begin(), str.end(), str.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+  for (int i = 0; i < str.length(); i++) {
+    str[i] = std::tolower(str[i]);
+  }
+}
+
+std::string Utils::removeSpecial(std::string& str) {
+  std::string out = "";
+  out.reserve(str.length());
+  for (int i = 0; i < str.length(); i++) {
+    auto c = str[i];
+    if (std::isalnum(c)) {
+      out += c;
+    } else {
+      out += " ";
+    }
+  }
+
+  return out;
+}
+
+std::string Utils::fixWhitespace(std::string& str) {
+  if (str.length() == 0) {
+    return "";
+  }
+  int first = -1;
+  for (int i = 0; i < str.length(); i++) {
+    if (std::isspace(str[i])) {
+      first = i;
+      break;
+    }
+  }
+  if (first == -1) {
+    return std::string(str);
+  }
+  std::string out = "";
+  auto len = str.length();
+  out.reserve(len);
+  bool flag = false;
+  for (int i = 0; i < len; i++) {
+    if (std::isspace(str[i])) {
+      if (!flag) {
+        out += str[i];
+        flag = true;
+      }
+    } else {
+      flag = false;
+      out += str[i];
+    }
+  }
+  return out;
 }
 
 void Utils::lowerAndClean(std::string& str) {
-  str.erase(std::remove_if(
-                str.begin(), str.end(),
-                [](char c) { return !(std::isalnum(c) || std::isspace(c)); }),
-            str.end());
-  str.erase(
-      std::unique(str.begin(), str.end(),
-                  [](char a, char b) { return (a == b) && (std::isspace(a)); }),
-      str.end());
-  if (str[str.length() - 1] == ' ') {
-    str.erase(str.length() - 1, 1);
+  auto curr = Utils::removeSpecial(str);
+  curr = Utils::fixWhitespace(curr);
+  if (curr[curr.length() - 1] == ' ') {
+    curr.erase(curr.length() - 1, 1);
   }
-  if (str[0] == ' ') {
-    str.erase(0, 1);
+  if (curr[0] == ' ') {
+    curr.erase(0, 1);
   }
-  Utils::makeLowercase(str);
+  Utils::makeLowercase(curr);
+  str.assign(curr);
 }
 
-void Utils::getBatchIndex(int* start, int* end, int length, int coreCount, int currentCore) {
+void Utils::getBatchIndex(int* start,
+                          int* end,
+                          int length,
+                          int coreCount,
+                          int currentCore) {
   int perCoreData = ceil(length / (double)coreCount);
   if (currentCore == coreCount - 1) {
     // The last core will process whatever is left
@@ -131,4 +177,12 @@ void Utils::getBatchIndex(int* start, int* end, int length, int coreCount, int c
       return;
     }
   }
+}
+
+std::string Utils::getEnvVar(std::string key) {
+  auto var = std::getenv(key.c_str());
+  if (var == nullptr) {
+    return "";
+  }
+  return std::string(var);
 }

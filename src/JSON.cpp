@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <cerrno>
 #include <iostream>
+#include <mutex>
 #include <string>
+#include <thread>
 #include "FileSystem.hpp"
 #include "Utils.hpp"
-#include <thread>
-#include <mutex>
 
 std::string cleanJSONValue(const std::string& value) {
   if (value[value.length() - 1] == ',') {
@@ -31,7 +31,8 @@ CameraDTO* JSON::parseJSON(const std::string& path) {
   FILE* file = fopen(path.c_str(), "r");
   size_t len = 0;
   if (!file) {
-    std::cout << "Something went wrong when opening the file " << path << std::endl;
+    std::cout << "Something went wrong when opening the file " << path
+              << std::endl;
     perror("Error");
     exit(EXIT_FAILURE);
   }
@@ -99,26 +100,36 @@ CameraDTO* JSON::parseJSON(const std::string& path) {
   return camera;
 }
 
-void JSON::loadData(const std::string& basePath, FastVector<CameraDTO*>& cameras) {
+void JSON::loadData(const std::string& basePath,
+                    FastVector<CameraDTO*>& cameras) {
   FastVector<std::string> files(30000);
   FileSystem::getAllFiles(basePath, files);
-  auto coreCount = std::thread::hardware_concurrency();
-  std::thread handles[coreCount];
-  std::mutex m;
-  for (int core = 0; core < coreCount; core++) {
-    handles[core] = std::thread([&files, &coreCount, core, &cameras, &m]() {
-      int start, end;
-      Utils::getBatchIndex(&start, &end, files.getLength(), coreCount, core);
-      for (int i = start; i < end; i++) {
-        auto current = files[i];
-        auto camera = JSON::parseJSON(current);
-        m.lock();
-        cameras.append(camera);
-        m.unlock();
-      }
-    });
-  }
-  for (int i = 0; i < coreCount; i++) {
-    handles[i].join();
+  auto useThreads = Utils::getEnvVar("USE_THREADS");
+  if (useThreads == "1") {
+    auto coreCount = std::thread::hardware_concurrency();
+    std::thread handles[coreCount];
+    std::mutex m;
+    for (int core = 0; core < coreCount; core++) {
+      handles[core] = std::thread([&files, &coreCount, core, &cameras, &m]() {
+        int start, end;
+        Utils::getBatchIndex(&start, &end, files.getLength(), coreCount, core);
+        for (int i = start; i < end; i++) {
+          auto current = files[i];
+          auto camera = JSON::parseJSON(current);
+          m.lock();
+          cameras.append(camera);
+          m.unlock();
+        }
+      });
+    }
+    for (int i = 0; i < coreCount; i++) {
+      handles[i].join();
+    }
+  } else {
+    for (int i = 0; i < files.getLength(); i++) {
+      auto current = files[i];
+      auto camera = JSON::parseJSON(current);
+      cameras.append(camera);
+    }
   }
 }
