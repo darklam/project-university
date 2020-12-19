@@ -1,21 +1,21 @@
 #include <unistd.h>
+#include <TextProcessing.hpp>
 #include <ctime>
 #include <iostream>
 #include <string>
 #include "CSV.hpp"
 #include "Clique.hpp"
+#include "FastVector.hpp"
 #include "FileSystem.hpp"
 #include "HashMap.hpp"
 #include "JSON.hpp"
 #include "List.hpp"
-#include "Set.hpp"
-#include "Utils.hpp"
-#include "FastVector.hpp"
-#include "Vectorizer.hpp"
-#include "Pairs.hpp"
-#include <TextProcessing.hpp>
 #include "Logistic.hpp"
 #include "Metrics.hpp"
+#include "Pairs.hpp"
+#include "Set.hpp"
+#include "Utils.hpp"
+#include "Vectorizer.hpp"
 
 struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
@@ -63,8 +63,6 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
     }
   }
 }
-
-
 
 int main(int argc, char** argv) {
   /*--------------------  Part 1 -----------------------------------*/
