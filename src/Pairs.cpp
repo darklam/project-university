@@ -79,7 +79,6 @@ HashMap<std::string>* Pairs::createDataset(List<Entry<Set*>*>* positive, Clique 
     auto items = item->getItems();
     auto negatives = clique->getNegatives(items->getRoot()->getValue()->value);
     if(negatives->getLength() == 0){
-      printf("ok\n");
       delete items;
       for (auto k = negatives->getRoot(); k != nullptr; k = *(k->getNext())) {
         auto neg = k->getValue();
