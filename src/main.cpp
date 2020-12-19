@@ -1,28 +1,27 @@
 #include <unistd.h>
+#include <TextProcessing.hpp>
 #include <ctime>
 #include <iostream>
 #include <string>
 #include "CSV.hpp"
 #include "Clique.hpp"
+#include "FastVector.hpp"
 #include "FileSystem.hpp"
 #include "HashMap.hpp"
 #include "JSON.hpp"
 #include "List.hpp"
-#include "Set.hpp"
-#include "Utils.hpp"
-#include "FastVector.hpp"
-#include "Vectorizer.hpp"
-#include "Pairs.hpp"
-#include <TextProcessing.hpp>
 #include "Logistic.hpp"
 #include "Metrics.hpp"
+#include "Pairs.hpp"
+#include "Set.hpp"
+#include "Utils.hpp"
+#include "Vectorizer.hpp"
 
 struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
   std::string outType = "pairs";
   std::string inName = "W_Dataset.csv";
 };
-
 
 void parseArgs(int argc, char** argv, ProgramParams* params) {
   for (int i = 0; i < argc; i++) {
@@ -46,8 +45,6 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
     }
   }
 }
-
-
 
 int main(int argc, char** argv) {
   // Part1
@@ -112,13 +109,17 @@ int main(int argc, char** argv) {
   std::cout << "Fitting model...\n";
   model.fit(dataset, vectors, ids, train_size, 0.01);
   FastVector<int> y_true(200);
-  auto pred = model.predict(dataset, vectors, ids, dataset_size, train_size, y_true);
+  auto pred =
+      model.predict(dataset, vectors, ids, dataset_size, train_size, y_true);
   std::cout << "F1: " << Metrics::f1_score(y_true, pred) << std::endl;
-  std::cout << "Precision: " << Metrics::precision_score(y_true, pred) << std::endl;
+  std::cout << "Precision: " << Metrics::precision_score(y_true, pred)
+            << std::endl;
   std::cout << "Recall: " << Metrics::recall_score(y_true, pred) << std::endl;
-  std::cout << "Accuracy: " << Metrics::accuracy_score(y_true, pred) << std::endl;
-  for(int i = 0; i < y_true.getLength(); i++){
-    std::cout << y_true.get(i) << " ";
+  std::cout << "Accuracy: " << Metrics::accuracy_score(y_true, pred)
+            << std::endl;
+  auto losses = model.getLossHistory();
+  for (int i = 0; i < losses->getLength(); i++) {
+    std::cout << (*losses)[i] << std::endl;
   }
   delete[] pred;
   for (int i = 0; i < texts.getLength(); i++) {

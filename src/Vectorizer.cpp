@@ -117,7 +117,7 @@ void Vectorizer::fit(Vector2D sentences) {
 
         if (!res.hasValue) {
           auto info = new WordInfo();
-          info->index = this->vocabSize++;
+          this->vocabSize++;
           this->vocab->set(word, info);
         }
       }
@@ -125,17 +125,34 @@ void Vectorizer::fit(Vector2D sentences) {
 
     FastVector<Entry<int>*> entries;
     termFreq.getEntries(entries);
+    int entriesLength = entries.getLength();
 
-    for (int i = 0; i < entries.getLength(); i++) {
+    float mean = 0.0;
+    for (int i = 0; i < entriesLength; i++) {
+      mean += entries[i]->value;
+    }
+
+    mean /= entriesLength;
+
+    int index = 0;
+
+    for (int i = 0; i < entriesLength; i++) {
       auto entry = *entries[i];
-      auto idf = documentsCount / entry.value;
       HashResult<WordInfo*> res;
       this->vocab->get(entry.key, &res);
       if (!res.hasValue) {
         std::cout << "Bruuuuuh this word is not in the vocab?\n";
         return;
       }
+      if (entry.value < mean) {
+        this->vocab->remove(entry.key);
+        delete res.value;
+        this->vocabSize--;
+        continue;
+      }
+      auto idf = documentsCount / entry.value;
       res.value->idf = log(idf);
+      res.value->index = index++;
       delete entries[i];
     }
   }
@@ -145,8 +162,7 @@ void Vectorizer::getVocab(FastVector<Entry<WordInfo*>*>& vec) {
   this->vocab->getEntries(vec);
 }
 
-void Vectorizer::transform(Vector2D sentences,
-                           float** vectors) {
+void Vectorizer::transform(Vector2D sentences, float** vectors) {
   auto useThreads = Utils::getEnvVar("USE_THREADS");
 
   FastVector<Entry<WordInfo*>*> vocabEntries;
@@ -208,13 +224,12 @@ void Vectorizer::transform(Vector2D sentences,
         occurencesMap.get(word, &res);
         occurencesMap.set(word, res.hasValue ? res.value + 1 : 1);
       }
-      for (int j = 0; j < sentenceLength; j++) { 
+      for (int j = 0; j < sentenceLength; j++) {
         auto word = (*sentence)[j];
         HashResult<WordInfo*> res;
         this->vocab->get(word, &res);
         if (!res.hasValue) {
-          std::cout << "This is much very wrong\n";
-          exit(EXIT_FAILURE);
+          continue;
         }
         HashResult<int> freq;
         occurencesMap.get(word, &freq);

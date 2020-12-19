@@ -186,6 +186,24 @@ class HashMap {
     }
   }
 
+  void remove(std::string& key) {
+    auto ind = this->hashFunc(key);
+    List<Item<T>*>* bucket = this->buckets[ind];
+    if (bucket == nullptr) {
+      return;
+    }
+
+    for (Node<Item<T>*>* i = bucket->getRoot(); i != nullptr; i = *(i->getNext())) {
+      Item<T>* val = i->getValue();
+      std::string currentKey = val->getKey();
+      if (key == currentKey) {
+        bucket->remove(i);
+        delete val;
+        break;
+      }
+    }
+  }
+
   ~HashMap() {
     for (int i = 0; i < this->bucketSize; i++) {
       List<Item<T>*>* current = this->buckets[i];

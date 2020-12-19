@@ -1,8 +1,8 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include <iostream>
 #include <cerrno>
+#include <iostream>
 
 template <typename T>
 class Node {
@@ -18,6 +18,8 @@ class Node {
   void setNext(Node<T>* next) { this->next = next; }
 
   Node<T>** getPrevious() { return &(this->previous); }
+
+  void setPrevious(Node<T>* previous) { this->previous = previous; }
 
   T getValue() { return this->value; }
 
@@ -54,6 +56,32 @@ class List {
       this->lastNode = *(this->lastNode->getNext());
     }
     this->length++;
+  }
+
+  void remove(Node<T>* node) {
+    for (Node<T>* i = this->root; i != nullptr; i = *(i->getNext())) {
+      if (i == node) {
+        Node<T>** previous = i->getPrevious();
+        Node<T>** next = i->getNext();
+        if (*previous != nullptr) {
+          (*previous)->setNext(*next);
+        }
+        if (*next != nullptr) {
+          (*next)->setPrevious(*previous);
+        }
+
+        if (i == this->root) {
+          this->root = *next;
+        }
+
+        if (i == this->lastNode) {
+          this->lastNode = *previous;
+        }
+
+        delete i;
+        break;
+      }
+    }
   }
 
   T get(int index) {
