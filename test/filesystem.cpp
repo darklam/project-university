@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "FileSystem.hpp"
 #include "Set.hpp"
+#include "FastVector.hpp"
 
 TEST(FileSystem, JoinsThePath) {
   auto result = FileSystem::join("one-dir", "another-dir");
@@ -15,26 +16,26 @@ TEST(FileSystem, IsDirectory) {
 }
 
 TEST(FileSystem, ListContents) {
-  auto result = FileSystem::listContents("../test/listContentsTest", 'f');
-  ASSERT_EQ(result->getLength(), 2);
+  FastVector<std::string> result;
+  FileSystem::listContents("../test/listContentsTest", 'f', result);
+  ASSERT_EQ(result.getLength(), 2);
   Set s;
-  for (auto i = result->getRoot(); i != nullptr; i = *(i->getNext())) {
-    auto val = i->getValue();
+  for (auto i = 0; i < result.getLength(); i++) {
+    auto val = result[i];
     s.add(val);
   }
   ASSERT_EQ(s.exists("file1.txt"), true);
   ASSERT_EQ(s.exists("file2.txt"), true);
-  delete result;
-  result = FileSystem::listContents("../test/listContentsTest", 'd');
-  ASSERT_EQ(result->getLength(), 4);
+  FastVector<std::string> result2;
+  FileSystem::listContents("../test/listContentsTest", 'd', result2);
+  ASSERT_EQ(result2.getLength(), 4);
   Set s2;
-  for (auto i = result->getRoot(); i != nullptr; i = *(i->getNext())) {
-    auto val = i->getValue();
+  for (auto i = 0; i < result2.getLength(); i++) {
+    auto val = result2[i];
     s2.add(val);
   }
   ASSERT_EQ(s2.exists("dir1"), true);
   ASSERT_EQ(s2.exists("dir2"), true);
   ASSERT_EQ(s2.exists("."), true);
   ASSERT_EQ(s2.exists(".."), true);
-  delete result;
 }
