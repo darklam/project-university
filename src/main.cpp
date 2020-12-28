@@ -2,6 +2,8 @@
 #include <TextProcessing.hpp>
 #include <ctime>
 #include <iostream>
+#include <ctime>
+#include <cstdlib>
 #include <string>
 #include "CSV.hpp"
 #include "Clique.hpp"
@@ -16,6 +18,8 @@
 #include "Set.hpp"
 #include "Utils.hpp"
 #include "Vectorizer.hpp"
+#include "BowVectorizer.hpp"
+#include <TextProcessing.hpp>
 
 struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
@@ -40,6 +44,21 @@ void balanceDataset(FastVector<std::string>& dataset, FastVector<std::string>& t
   }
 }
 
+void RandomizeDataset(FastVector<std::string>& dataset){
+  int total_size = dataset.getLength();
+  int pos1;
+  int pos2;
+  for(int i = 0; i < total_size; i++){
+    pos1 = rand() % total_size;
+    pos2 = rand() % total_size;
+    if(pos1 == pos2){
+      continue;
+    }
+    auto temp = dataset.get(pos1);
+    dataset.set(pos1, dataset.get(pos2));
+    dataset.set(pos2, temp);
+  }
+}
 
 void parseArgs(int argc, char** argv, ProgramParams* params) {
   for (int i = 0; i < argc; i++) {
@@ -65,6 +84,7 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
 }
 
 int main(int argc, char** argv) {
+  srand(time(NULL));
   /*--------------------  Part 1 -----------------------------------*/
   ProgramParams params;
   parseArgs(argc, argv, &params);
@@ -81,7 +101,8 @@ int main(int argc, char** argv) {
   _pairs->values(dataset);
   delete _pairs;
   int dataset_size = dataset.getLength();
-
+  std::cout << "Randomizing Dataset..." << std::endl;
+  RandomizeDataset(dataset);
   /*--------------------  Part 2 -----------------------------------*/
   char cwd[len];
   getcwd(cwd, len);
@@ -103,7 +124,7 @@ int main(int argc, char** argv) {
   Vectorizer v;
   std::cout << "Fitting the vectorizer...\n";
   v.fit(tokenized);
-  std::cout << "Vectorizer fitted...\n";
+  std::cout << "Vectorizer fitted...\n";\
   FastVector<Entry<WordInfo*>*> vec;
   v.getVocab(vec);
   int vocab_size = vec.getLength();
