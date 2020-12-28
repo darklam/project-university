@@ -79,6 +79,9 @@ HashMap<std::string>* Pairs::createDataset(List<Entry<Set*>*>* positive, Clique 
     auto items = item->getItems();
     auto negatives = clique->getNegatives(items->getRoot()->getValue()->value);
     if(negatives->getLength() == 0){
+      for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
+        delete j->getValue();
+      }
       delete items;
       for (auto k = negatives->getRoot(); k != nullptr; k = *(k->getNext())) {
         auto neg = k->getValue();
@@ -118,11 +121,11 @@ HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs){
     auto _pairs = createDataset(pos_unique, clique);
     deleteEntries(pos_unique);
     deleteEntries(neg_unique);
+    delete clique;
     for (auto i = 0; i < pairs->getLength(); i++) {
         auto pair = (*pairs)[i];
         delete pair;
     }
     delete pairs;
-    delete clique;
     return _pairs;
 }

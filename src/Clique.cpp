@@ -21,11 +21,17 @@ void Clique::setPair(std::string id1, std::string id2){
     if(this->existInPositives(id1, id2)){
         return;
     }
-    this->PairMergeNegatives(id1, id2);
+    int flag = this->PairMergeNegatives(id1, id2);
     
     HashResult<Set*> neg;
     this->Negative->get(id1, &neg);
     if(!neg.hasValue){
+        printf("yep shit happens\n");
+        exit(1);
+    }
+    HashResult<Set*> neg1;
+    this->Negative->get(id2, &neg1);
+    if(!neg1.hasValue){
         printf("yep shit happens\n");
         exit(1);
     }
@@ -53,6 +59,10 @@ void Clique::setPair(std::string id1, std::string id2){
             delete entries;
             delete pos2.value;
             this->Positive->set(id2, pos1.value);
+            if(flag == 1){
+                delete neg1.value;
+                this->Negative->set(id2, neg.value);
+            }
         }
         pos1.value->add(id2);
     } else if (pos1.hasValue && !pos2.hasValue) {
@@ -72,7 +82,7 @@ void Clique::setPair(std::string id1, std::string id2){
     
 }
 
-void Clique::PairMergeNegatives(std::string id1, std::string id2){
+int Clique::PairMergeNegatives(std::string id1, std::string id2){
     HashResult<Set*> neg1;
     HashResult<Set*> neg2;
     this->Negative->get(id1, &neg1);
@@ -80,7 +90,7 @@ void Clique::PairMergeNegatives(std::string id1, std::string id2){
     if (neg1.hasValue && neg2.hasValue) {
         if (neg1.value != neg2.value) {
             neg1.value->merge(neg2.value);
-            this->Negative->set(id2, neg1.value);
+            return 1;
         }
     } else if (neg1.hasValue && !neg2.hasValue) {
         this->Negative->set(id2, neg1.value);
@@ -91,6 +101,7 @@ void Clique::PairMergeNegatives(std::string id1, std::string id2){
         this->Negative->set(id1, set);
         this->Negative->set(id2,set);
     }
+    return 0;
 }
 
 void Clique::UpdateNegativesWithNewPair(std::string id1){
@@ -112,7 +123,6 @@ void Clique::UpdateNegativesWithNewPair(std::string id1){
         this->Negative->get(actual, &res3);
         if (res3.hasValue) {
             res3.value->merge(pos1.value);
-            
         }
         delete v;
     }

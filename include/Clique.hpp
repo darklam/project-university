@@ -21,7 +21,7 @@ class Clique{
         bool existInPositives(std::string, std::string);
         bool existInNegatives(std::string, std::string);
         void UpdateNegativesWithNewPair(std::string);
-        void PairMergeNegatives(std::string, std::string);
+        int PairMergeNegatives(std::string, std::string);
 };
 
 
