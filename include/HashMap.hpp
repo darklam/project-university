@@ -227,7 +227,7 @@ class HashMap {
     auto str = key.c_str();
     int c;
 
-    while (c = *str++)
+    while ((c = *str++))
         hash = ((hash << 5) + hash) + c;
 
     return hash % this->bucketSize;
