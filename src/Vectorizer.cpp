@@ -144,10 +144,11 @@ void Vectorizer::fit(Vector2D sentences) {
         std::cout << "Bruuuuuh this word is not in the vocab?\n";
         return;
       }
-      if (entry.value < mean) {
+      if (entry.value < mean * 0.2) {
         this->vocab->remove(entry.key);
         delete res.value;
         this->vocabSize--;
+        delete entries[i];
         continue;
       }
       auto idf = documentsCount / entry.value;
@@ -238,6 +239,10 @@ void Vectorizer::transform(Vector2D sentences, float** vectors) {
       }
       vectors[i] = vec;
     }
+  }
+  for(int i = 0; i < vocabEntries.getLength(); i++){
+    auto entry = vocabEntries.get(i);
+    delete entry;
   }
 }
 

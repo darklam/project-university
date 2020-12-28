@@ -106,8 +106,10 @@ class Logistic {
             }
         }
 
+
         float make_pred(FastVector<float>& x){
             float p = this->b0;
+            // float p = 0;
             for(int i = 0; i < this->size; i++){
                 p += this->b1[i] * x.get(i);
             }

@@ -77,7 +77,6 @@ int main(int argc, char** argv) {
 
   std::cout << "Creating Dataset..." << std::endl;
   auto _pairs = Pairs::PairsToDataset(pairs);
-
   FastVector<std::string> dataset(100000);
   _pairs->values(dataset);
   delete _pairs;
@@ -111,33 +110,27 @@ int main(int argc, char** argv) {
   std::cout << "Vocab size: " << vec.getLength() << std::endl;
   float** vectors = new float*[texts.getLength()];
   v.transform(tokenized, vectors);
-  FastVector<Entry<WordInfo*>*> vocabEntries;
-  v.getVocab(vocabEntries);
   for (int i = 0; i < tokenized->getLength(); i++) {
     delete (*tokenized)[i];
   }
   delete tokenized;
-
+  for(int i = 0; i < vec.getLength(); i++){
+    auto entry = vec.get(i);
+    delete entry;
+  }
   /*--------------------  Part 3 -----------------------------------*/
   int train_size = (int)(dataset_size * 0.8);
   int test_size = dataset_size - train_size;
   std::cout << "Dataset size: " << dataset_size << std::endl;
   std::cout << "Train size: " << train_size << std::endl;
   std::cout << "Test size: " << test_size << std::endl;
-  FastVector<std::string> train(100000);
-
-
-  balanceDataset(dataset, train, train_size);
-  std::cout << "Input train size " << train.getLength() << std::endl;
-  int test_input = (int)(train.getLength() * 0.2);
-  std::cout << "Input test size " << test_input << std::endl;
   Logistic<float> model(vocab_size);
   std::cout << "Fitting model...\n";
-  model.fit(train, vectors, ids, train.getLength(), 0.1, 10);
+  model.fit(dataset, vectors, ids, train_size, 0.01, 5);
   std::cout << "Fit finished...\n";
   std::cout << "Testing...\n";
   FastVector<int> y_true(200);
-  auto pred = model.predict(dataset, vectors, ids, train_size + test_input, train_size, y_true);
+  auto pred = model.predict(dataset, vectors, ids, dataset_size, train_size, y_true);
 
   std::cout << "\nF1: " << Metrics::f1_score(y_true, pred) << std::endl;
   std::cout << "Precision: " << Metrics::precision_score(y_true, pred) << std::endl;
