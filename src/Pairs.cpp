@@ -117,17 +117,12 @@ HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs){
     auto clique = new Clique();
     PairsToClique(pairs, clique);
     auto positives = clique->getPositiveEntries();
-    std::cout << "Positives: " << positives->getLength() << std::endl;
     auto pos_unique = RemoveDup(positives);
-    std::cout << "Positives Un: " << pos_unique->getLength() << std::endl;
     auto negatives = clique->getNegativeEntries();
-    std::cout << "Negatives: " << negatives->getLength() << std::endl;
     auto neg_unique = RemoveDup(negatives);
-    std::cout << "Negatives Un: " << neg_unique->getLength() << std::endl;
-    // auto _pairs = createDataset(pos_unique, clique);
+    auto _pairs = createDataset(pos_unique, clique);
     deleteEntries(pos_unique);
     deleteEntries(neg_unique);
     delete clique;
-    // return _pairs;
-    return nullptr;
+    return _pairs;
 }

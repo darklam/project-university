@@ -23,7 +23,7 @@ class Logistic {
         };
 
         ~Logistic(){
-            delete this->b1;
+            delete[] this->b1;
             delete this->loss_history;
         }
 
