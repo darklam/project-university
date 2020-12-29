@@ -39,6 +39,7 @@ void Clique::setPair(std::string id1, std::string id2){
     HashResult<Set*> pos2;
     this->Positive->get(id1, &pos1);
     this->Positive->get(id2, &pos2);
+    HashMap<Set*> dedupe;
     if (pos1.hasValue && pos2.hasValue) {
         if (pos1.value != pos2.value) {
             pos1.value->merge(pos2.value);
@@ -53,6 +54,12 @@ void Clique::setPair(std::string id1, std::string id2){
                 }
                 HashResult<Set*> not1;
                 this->Negative->get(actual, &not1);
+                if(not1.hasValue){
+                    if(not1.value != neg1.value){
+                        std::string key = std::to_string((intptr_t)not1.value);
+                        dedupe.set(key, not1.value);
+                    }
+                }
                 this->Negative->set(actual, neg.value);
                 delete v;
             }
@@ -65,6 +72,20 @@ void Clique::setPair(std::string id1, std::string id2){
             }
         }
         pos1.value->add(id2);
+        auto ee = dedupe.getEntries();
+        for(auto i = ee->getRoot(); i != nullptr; i = *(i->getNext())){
+            auto cur = i->getValue();
+            auto item = cur->value;
+            auto items = item->getItems();
+            for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
+                auto val = j->getValue();
+                delete val;
+            }
+            delete items;
+            delete item;
+            delete cur;
+        }
+        delete ee;
     } else if (pos1.hasValue && !pos2.hasValue) {
         pos1.value->add(id2);
         this->Positive->set(id2, pos1.value);
@@ -123,6 +144,8 @@ void Clique::UpdateNegativesWithNewPair(std::string id1){
         this->Negative->get(actual, &res3);
         if (res3.hasValue) {
             res3.value->merge(pos1.value);
+        }else{
+            exit(1);
         }
         delete v;
     }

@@ -15,7 +15,9 @@ void Pairs::PairsToClique(CustomVector<Pair*>* pairs, Clique* clique) {
     }else{
       clique->setPair(pair->getId1(), pair->getId2());
     }
+    delete pair;
   }
+  delete pairs;
 }
 
 void Pairs::deleteEntries(List<Entry<Set*>*>* entries){
@@ -115,17 +117,17 @@ HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs){
     auto clique = new Clique();
     PairsToClique(pairs, clique);
     auto positives = clique->getPositiveEntries();
+    std::cout << "Positives: " << positives->getLength() << std::endl;
     auto pos_unique = RemoveDup(positives);
+    std::cout << "Positives Un: " << pos_unique->getLength() << std::endl;
     auto negatives = clique->getNegativeEntries();
+    std::cout << "Negatives: " << negatives->getLength() << std::endl;
     auto neg_unique = RemoveDup(negatives);
-    auto _pairs = createDataset(pos_unique, clique);
+    std::cout << "Negatives Un: " << neg_unique->getLength() << std::endl;
+    // auto _pairs = createDataset(pos_unique, clique);
     deleteEntries(pos_unique);
     deleteEntries(neg_unique);
     delete clique;
-    for (auto i = 0; i < pairs->getLength(); i++) {
-        auto pair = (*pairs)[i];
-        delete pair;
-    }
-    delete pairs;
-    return _pairs;
+    // return _pairs;
+    return nullptr;
 }
