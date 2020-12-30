@@ -14,7 +14,8 @@ namespace Pairs {
     List<Entry<Set*>*>* RemoveDup(List<Entry<Set*>*>* entries);
     std::string sortIds(std::string id1, std::string id2);
     HashMap<std::string>* createDataset(List<Entry<Set*>*>* positive, Clique *clique);
-    HashMap<std::string>* PairsToDataset(CustomVector<Pair*>* pairs);
+    HashMap<std::string>* createDataset(List<Entry<Set*>*>* positive, List<Entry<Set*>*>* negative);
+    HashMap<std::string>* PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output);
 }
 
 

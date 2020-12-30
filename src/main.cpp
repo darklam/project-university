@@ -25,6 +25,7 @@ struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
   std::string outType = "pairs";
   std::string inName = "W_Dataset.csv";
+  std::string inCameras = "cameras";
 };
 
 void balanceDataset(FastVector<std::string>& dataset, FastVector<std::string>& train, int size){
@@ -80,6 +81,10 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
       }
       params->outType = type;
     }
+    if (val == "--c"){
+      params->inCameras = std::string(argv[i + 1]);
+    }
+
   }
 }
 
@@ -96,11 +101,12 @@ int main(int argc, char** argv) {
   auto pairs = CSV::ReadCSV(path1);
 
   std::cout << "Creating Dataset..." << std::endl;
-  auto _pairs = Pairs::PairsToDataset(pairs);
+  auto _pairs = Pairs::PairsToDataset(pairs, params.outType, params.outName);
   // FastVector<std::string> dataset(100000);
   // _pairs->values(dataset);
   // delete _pairs;
   // int dataset_size = dataset.getLength();
+  // std::cout << dataset_size << std::endl;
   // std::cout << "Randomizing Dataset..." << std::endl;
   // RandomizeDataset(dataset);
   // /*--------------------  Part 2 -----------------------------------*/
@@ -124,7 +130,7 @@ int main(int argc, char** argv) {
   // Vectorizer v;
   // std::cout << "Fitting the vectorizer...\n";
   // v.fit(tokenized);
-  // std::cout << "Vectorizer fitted...\n";\
+  // std::cout << "Vectorizer fitted...\n";
   // FastVector<Entry<WordInfo*>*> vec;
   // v.getVocab(vec);
   // int vocab_size = vec.getLength();

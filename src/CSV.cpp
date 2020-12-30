@@ -88,6 +88,7 @@ void CSV::WriteCSVPairs(std::string path, List<Entry<Set*>*>* entries){
                 // myfile << val->value << ", " << val1->value << std::endl;
                 fprintf(file, "%s, %s\n", val->value.c_str(), val1->value.c_str());
             }
+            delete val;
         }
         delete items;
     }
@@ -97,8 +98,6 @@ void CSV::WriteCSVPairs(std::string path, List<Entry<Set*>*>* entries){
 
 
 void CSV::WriteCSV(std::string path, List<Entry<Set*>*>* entries){
-    // std::ofstream myfile;
-    // myfile.open(path);
     FILE *file;
     file = fopen(path.c_str(), "w+");
     for (auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())) {
@@ -114,6 +113,7 @@ void CSV::WriteCSV(std::string path, List<Entry<Set*>*>* entries){
             }else{
                 fprintf(file, ", %s", val->value.c_str());
             }
+            delete val;
         }
         fprintf(file, "\n");
         delete items;

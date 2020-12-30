@@ -112,19 +112,56 @@ HashMap<std::string>* Pairs::createDataset(List<Entry<Set*>*>* positive, Clique 
   return pairs;
 }
 
+HashMap<std::string>* Pairs::createDataset(List<Entry<Set*>*>* positive, List<Entry<Set*>*>* negative){
+  auto pairs = new HashMap<std::string>(50000);
+  for (auto i = positive->getRoot(); i != nullptr; i = *(i->getNext())) {
+    auto cur = i->getValue();
+    auto item = cur->value;
+    auto items = item->getItems();
+    for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
+      auto val = j->getValue();
+      for (auto k = *(j->getNext()); k != nullptr; k = *(k->getNext())) {
+        auto val1 = k->getValue();
+        auto str = val->value + "," + val1->value + "," + "1";
+        pairs->set(str, str);
+      }
+      delete val;
+    }
+    delete items;
+  }
 
-HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs){
+  for (auto i = negative->getRoot(); i != nullptr; i = *(i->getNext())) {
+    auto cur = i->getValue();
+    auto item = cur->value;
+    auto items = item->getItems();
+    auto key = cur->key;
+    for(auto j = items->getRoot(); j != nullptr; j = *(j->getNext())){
+      auto val = j->getValue();
+      auto str = sortIds(key, val->value);
+      pairs->set(str, str);
+      delete val;
+    }
+    delete items;
+  }
+  return pairs;
+}
+
+
+HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output){
     auto clique = new Clique();
     PairsToClique(pairs, clique);
     auto positives = clique->getPositiveEntries();
-    std::cout << "Positives: " << positives->getLength() << std::endl;
     auto pos_unique = RemoveDup(positives);
-    std::cout << "Positives Un: " << pos_unique->getLength() << std::endl;
     auto negatives = clique->getNegativeEntries();
-    std::cout << "Negatives: " << negatives->getLength() << std::endl;
+    auto _pairs = createDataset(pos_unique, negatives);
     auto neg_unique = RemoveDup(negatives);
-    std::cout << "Negatives Un: " << neg_unique->getLength() << std::endl;
     // auto _pairs = createDataset(pos_unique, clique);
+    if(type == "pairs"){
+      CSV::WriteCSVPairs(output, pos_unique);
+    }else if (type == "all"){
+      CSV::WriteCSV(output, pos_unique);
+    }
+    
     deleteEntries(pos_unique);
     deleteEntries(neg_unique);
     delete clique;
