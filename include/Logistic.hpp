@@ -45,6 +45,24 @@ class Logistic {
             }
         }
 
+        void fit(FastVector<float*>& dataset, FastVector<int>& labels, int size, float learning_rate, int epocs = 1){
+            this->learning_rate = learning_rate;
+            for(int e = 0; e < epocs; e++){
+                float total_loss = 0.0;
+                for(int i = 0; i < size; i++){
+                    auto vec = dataset[i];
+                    auto y_true = labels[i];
+                    auto pred = this->make_pred(vec);
+                    auto _loss = this->cost_function(y_true, pred);
+                    this->update_weights(vec, y_true, pred);
+                    total_loss += _loss;
+                }
+                std::cout << "Epoch: " << e << " Loss: " << total_loss / size << std::endl;
+                this->loss_history->append(total_loss / size);
+            }
+        }
+        
+
         int* predict(FastVector<std::string>& dataset, T** vectors, HashMap<int>& ids, int size, int start, FastVector<int>& target){
             int *predictions = new int[size-start];
             for(int i = start; i < size; i++){
@@ -53,6 +71,20 @@ class Logistic {
                 int y_true = this->getVector(row, vectors, ids, vec);
                 target.append(y_true);
                 auto pred = this->make_pred(vec);
+                if(pred >= 0.5){
+                    predictions[i - start] = 1;
+                }else{
+                    predictions[i - start] = 0;
+                }
+            }
+            return predictions;
+        }
+
+        int* predict(FastVector<float*> dataset, int end, int start){
+            int *predictions = new int[end - start];
+            for(int i = start; i < end; i++){
+                auto row = dataset[i];
+                auto pred = this->make_pred(row);
                 if(pred >= 0.5){
                     predictions[i - start] = 1;
                 }else{
@@ -106,12 +138,29 @@ class Logistic {
             }
         }
 
+        void update_weights(float* x, int y_true, float pred){
+            this->b0 = this->b0 - this->learning_rate * (pred - y_true);    
+            for(int i = 0; i < this->size; i++){
+                this->b1[i] = this->b1[i] - this->learning_rate * (pred - y_true) * x[i];
+            }
+        }
+
 
         float make_pred(FastVector<float>& x){
             float p = this->b0;
             // float p = 0;
             for(int i = 0; i < this->size; i++){
                 p += this->b1[i] * x.get(i);
+            }
+            float sigmoid = 1 / (1 + exp(-p));
+            return sigmoid;
+        }
+
+        float make_pred(float* x){
+            float p = this->b0;
+            // float p = 0;
+            for(int i = 0; i < this->size; i++){
+                p += this->b1[i] * x[i];
             }
             float sigmoid = 1 / (1 + exp(-p));
             return sigmoid;

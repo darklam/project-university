@@ -88,6 +88,48 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
   }
 }
 
+template<typename T>
+int getVector(std::string row, T** vectors, HashMap<int>& ids, float** vector, int max_length){
+  std::string tokens[3];
+  Utils::splitStringLite(std::string(row), ",", tokens, 3);
+  HashResult<int> res1;
+  ids.get(tokens[0], &res1);
+  if(!res1.hasValue){
+    printf("something bad\n");
+    exit(1);
+  }
+  HashResult<int> res2;
+  ids.get(tokens[1], &res2);
+  if(!res2.hasValue){
+    printf("something bad\n");
+    exit(1);
+  }
+  auto v1 = vectors[res1.value];
+  auto v2 = vectors[res2.value];
+  
+  for(int i = 0; i < max_length; i++){
+    float min = v1[i] + v2[i];
+    min /= 2;
+    (*vector)[i] = min;
+  }
+  return atoi(tokens[2].c_str());
+}
+
+
+template<typename T>
+void getDatasetAsVectors(FastVector<std::string>& dataset, T** vectors, 
+HashMap<int>& ids, FastVector<float*>& final, FastVector<int>& y_true, int max_features){
+  for(int i = 0; i < dataset.getLength(); i++){
+    auto row = dataset[i];
+    float *vec = new float[max_features];
+    int _true = getVector(row, vectors, ids, &vec, max_features);
+    final.append(vec);
+    y_true.append(_true);
+  }
+}
+
+
+
 int main(int argc, char** argv) {
   srand(time(NULL));
   /*--------------------  Part 1 -----------------------------------*/
