@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 #include "TextProcessing.hpp"
-#include "Vectorizer.hpp"
+#include "TfIdfVectorizer.hpp"
 
-TEST(Vectorizer, fit) {
-  Vectorizer v;
+TEST(TfIdfVectorizer, fit) {
+  TfIdfVectorizer v;
   FastVector<std::string> sentences;
   sentences.append("This is a great test");
   sentences.append("Believe me I know all the tests and they all tell me this is the best test");
@@ -31,9 +31,9 @@ TEST(Vectorizer, fit) {
   }
 }
 
-TEST(Vectorizer, transform) {
+TEST(TfIdfVectorizer, transform) {
   // We basically just want this not to fail so no asserts lol
-  Vectorizer v;
+  TfIdfVectorizer v;
   FastVector<std::string> sentences;
   sentences.append("This is a great test");
   sentences.append("Believe me I know all the tests and they all tell me this is the best test");

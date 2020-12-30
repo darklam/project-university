@@ -1,14 +1,14 @@
-#include "Vectorizer.hpp"
+#include "TfIdfVectorizer.hpp"
 #include <cmath>
 #include <mutex>
 #include <thread>
 #include "Set.hpp"
 
-Vectorizer::Vectorizer() {
+TfIdfVectorizer::TfIdfVectorizer() {
   this->vocab = new HashMap<WordInfo*>();
 }
 
-Vectorizer::~Vectorizer() {
+TfIdfVectorizer::~TfIdfVectorizer() {
   FastVector<WordInfo*> values(this->vocabSize);
   this->vocab->values(values);
   for (int i = 0; i < values.getLength(); i++) {
@@ -17,7 +17,7 @@ Vectorizer::~Vectorizer() {
   delete this->vocab;
 }
 
-void Vectorizer::fit(Vector2D sentences) {
+void TfIdfVectorizer::fit(Vector2D sentences) {
   auto useThreads = Utils::getEnvVar("USE_THREADS");
   HashMap<int> termFreq;
   float documentsCount = sentences->getLength();
@@ -159,11 +159,11 @@ void Vectorizer::fit(Vector2D sentences) {
   }
 }
 
-void Vectorizer::getVocab(FastVector<Entry<WordInfo*>*>& vec) {
+void TfIdfVectorizer::getVocab(FastVector<Entry<WordInfo*>*>& vec) {
   this->vocab->getEntries(vec);
 }
 
-void Vectorizer::transform(Vector2D sentences, float** vectors) {
+void TfIdfVectorizer::transform(Vector2D sentences, float** vectors) {
   auto useThreads = Utils::getEnvVar("USE_THREADS");
 
   FastVector<Entry<WordInfo*>*> vocabEntries;
@@ -246,6 +246,6 @@ void Vectorizer::transform(Vector2D sentences, float** vectors) {
   }
 }
 
-int Vectorizer::getVocabSize() {
+int TfIdfVectorizer::getVocabSize() {
   return this->vocabSize;
 }

@@ -17,7 +17,7 @@
 #include "Pairs.hpp"
 #include "Set.hpp"
 #include "Utils.hpp"
-#include "Vectorizer.hpp"
+#include "TfIdfVectorizer.hpp"
 #include "BowVectorizer.hpp"
 #include <TextProcessing.hpp>
 
@@ -127,7 +127,7 @@ int main(int argc, char** argv) {
   std::cout << "Tokenizing...\n";
   auto tokenized = TextProcessing::tokenizePlus(texts);
   std::cout << "Tokenized...\n";
-  Vectorizer v;
+  TfIdfVectorizer v;
   std::cout << "Fitting the vectorizer...\n";
   v.fit(tokenized);
   std::cout << "Vectorizer fitted...\n";
