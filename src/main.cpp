@@ -132,34 +132,35 @@ HashMap<int>& ids, FastVector<float*>& final, FastVector<int>& y_true, int max_f
 
 int main(int argc, char** argv) {
   srand(time(NULL));
-  /*--------------------  Part 1 -----------------------------------*/
   ProgramParams params;
   parseArgs(argc, argv, &params);
   int len = 2048;
-  char cwd1[len];
-  getcwd(cwd1, len);
-  auto path1 = FileSystem::join(cwd1, params.inName);
-  std::cout << "Reading w_dataset..." << std::endl;
-  auto pairs = CSV::ReadCSV(path1);
+  char cwd_dataset[len];
+  getcwd(cwd_dataset, len);
+  auto path_dataset = FileSystem::join(cwd_dataset, params.inName);
 
-  std::cout << "Creating clique and final rows..." << std::endl;
+  char cwd_cameras[len];
+  getcwd(cwd_cameras, len);
+  auto path_cameras = FileSystem::join(cwd_cameras, params.inCameras);
+
+  /*--------------------  Part 1 -----------------------------------*/
+  std::cout << "Reading w_dataset..." << std::endl;
+  auto pairs = CSV::ReadCSV(path_dataset);
+
   auto _pairs = Pairs::PairsToDataset(pairs, params.outType, params.outName);
   FastVector<std::string> dataset(100000);
   _pairs->values(dataset);
   delete _pairs;
   int dataset_size = dataset.getLength();
-  std::cout << "Dataset size: " << dataset_size << std::endl;
-  std::cout << "Randomizing Dataset..." << std::endl;
   RandomizeDataset(dataset);
+  std::cout << "Done with dataset, final number of rows: " << dataset_size << std::endl;
   /*--------------------  Part 2 -----------------------------------*/
-  char cwd[len];
-  getcwd(cwd, len);
-  auto path = FileSystem::join(cwd, params.inCameras);
   FastVector<CameraDTO*> cameras(30000);
   FastVector<std::string> texts(30000);
   HashMap<int> ids(30000);
+
   std::cout << "Getting cameras..." << std::endl;
-  JSON::loadData(path, cameras);
+  JSON::loadData(path_cameras, cameras);
   for (int i = 0; i < cameras.getLength(); i++) {
     auto str = cameras[i]->getAllProperties();
     texts.append(str);
@@ -168,16 +169,15 @@ int main(int argc, char** argv) {
   }
   std::cout << "Tokenizing...\n";
   auto tokenized = TextProcessing::tokenizePlus(texts);
-  std::cout << "Tokenized...\n";
   TfIdfVectorizer v;
   std::cout << "Fitting the vectorizer...\n";
   v.fit(tokenized);
-  std::cout << "Vectorizer fitted...\n";
   FastVector<Entry<WordInfo*>*> vec;
   v.getVocab(vec);
   int vocab_size = vec.getLength();
-  std::cout << "Vocab size: " << vec.getLength() << std::endl;
+  std::cout << "Vocabulary size: " << vec.getLength() << std::endl;
   float** vectors = new float*[texts.getLength()];
+  std::cout << "Transforming...\n";
   v.transform(tokenized, vectors);
   for (int i = 0; i < tokenized->getLength(); i++) {
     delete (*tokenized)[i];
@@ -193,12 +193,12 @@ int main(int argc, char** argv) {
   std::cout << "Dataset size: " << dataset_size << std::endl;
   std::cout << "Train size: " << train_size << std::endl;
   std::cout << "Test size: " << test_size << std::endl;
+
   Logistic<float> model(vocab_size);
   std::cout << "Fitting model...\n";
   model.fit(dataset, vectors, ids, train_size, 0.01, 1);
-  std::cout << "Fit finished...\n";
   std::cout << "Testing...\n";
-  FastVector<int> y_true(200);
+  FastVector<int> y_true(10000);
   auto pred = model.predict(dataset, vectors, ids, dataset_size, train_size, y_true);
 
   std::cout << "\nF1: " << Metrics::f1_score(y_true, pred) << std::endl;
