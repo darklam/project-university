@@ -165,6 +165,5 @@ HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs, std::str
     deleteEntries(pos_unique);
     deleteEntries(neg_unique);
     delete clique;
-    // return _pairs;
-    return nullptr;
+    return _pairs;
 }
