@@ -11,8 +11,9 @@ class Set {
   bool exists(const std::string& item);
   List<Entry<std::string>*>* getItems();
   void merge(Set* set);
-
+  bool isEmpty();
  private:
+  bool empty;
   HashMap<std::string>* items;
 };
 

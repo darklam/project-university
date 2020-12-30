@@ -1,5 +1,5 @@
-#ifndef VECTORIZER_H
-#define VECTORIZER_H
+#ifndef TFIDFVECTORIZER_H
+#define TFIDFVECTORIZER_H
 
 #include <string>
 #include "FastVector.hpp"
@@ -11,13 +11,13 @@ struct WordInfo {
   int index;
 };
 
-class Vectorizer {
+class TfIdfVectorizer {
  public:
-  Vectorizer();
+  TfIdfVectorizer();
   void fit(Vector2D sentences);
   void transform(Vector2D sentences,
                  float** vectors);
-  ~Vectorizer();
+  ~TfIdfVectorizer();
   void getVocab(FastVector<Entry<WordInfo*>*>& vec);
   int getVocabSize();
  private:

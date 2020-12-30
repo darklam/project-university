@@ -57,7 +57,7 @@ CustomVector<Pair*>* CSV::ReadCSV(const std::string& path){
         }
         auto pair = new Pair();
         std::string tokens[3];
-        Utils::splitStringLite(std::string(line), ";", tokens, 3);
+        Utils::splitStringLite(std::string(line), ",", tokens, 3);
         if (tokens[0].length() == 0 || tokens[1].length() == 0) {
             printf("Something really bad happened\n");
         }
@@ -91,18 +91,13 @@ void CSV::WriteCSVPairs(std::string path, List<Entry<Set*>*>* entries){
             delete val;
         }
         delete items;
-        delete item;
-        delete cur;
     }
-    delete entries;
     // myfile.close();
     fclose(file);
 }
 
 
 void CSV::WriteCSV(std::string path, List<Entry<Set*>*>* entries){
-    // std::ofstream myfile;
-    // myfile.open(path);
     FILE *file;
     file = fopen(path.c_str(), "w+");
     for (auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())) {
@@ -122,10 +117,7 @@ void CSV::WriteCSV(std::string path, List<Entry<Set*>*>* entries){
         }
         fprintf(file, "\n");
         delete items;
-        delete item;
-        delete cur;
     }
-    delete entries;
     fclose(file);
 }
 

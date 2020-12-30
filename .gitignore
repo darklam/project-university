@@ -8,6 +8,7 @@ analysis.txt
 gmon.out
 camera_specs
 2013_camera_specs
+cameras
 *.csv
 *.py
 build
@@ -21,3 +22,4 @@ cameras
 sigmod_large_labelled_dataset.csv
 cameras-small
 *.tar.gz
+cameras/*

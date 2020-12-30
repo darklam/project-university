@@ -55,6 +55,20 @@ class CustomVector {
     return current[placeInChunk];
   }
 
+  void set(int index, T value){
+    int chunk = index / this->chunkSize;
+    int placeInChunk = index % this->chunkSize;
+    if (this->chunks->getLength() <= chunk) {
+      std::cout << "What are you doing step bro?\n";
+      exit(EXIT_FAILURE);
+    }
+    if (chunk == this->lastUsedPlace) {
+      this->lastUsed[placeInChunk] = value;
+    }
+    T* current = this->chunks->get(chunk);
+    current[placeInChunk] = value;
+  }
+
   T operator[](int index) { return this->get(index); }
 
   int getLength() { return this->length; }
