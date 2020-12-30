@@ -196,7 +196,7 @@ int main(int argc, char** argv) {
 
   Logistic<float> model(vocab_size);
   std::cout << "Fitting model...\n";
-  model.fit(dataset, vectors, ids, train_size, 0.01, 1);
+  model.fit(dataset, vectors, ids, train_size, 0.01, 5);
   std::cout << "Testing...\n";
   FastVector<int> y_true(10000);
   auto pred = model.predict(dataset, vectors, ids, dataset_size, train_size, y_true);
