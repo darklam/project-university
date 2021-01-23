@@ -144,27 +144,27 @@ int main(int argc, char** argv) {
   auto path_cameras = FileSystem::join(cwd_cameras, params.inCameras);
 
   /*--------------------  Part 1 -----------------------------------*/
-  // std::cout << "Reading w_dataset..." << std::endl;
-  // auto pairs = CSV::ReadCSV(path_dataset);
+  std::cout << "Reading w_dataset..." << std::endl;
+  auto pairs = CSV::ReadCSV(path_dataset);
 
-  // auto _pairs = Pairs::PairsToDataset(pairs, params.outType, params.outName);
-  // FastVector<std::string> dataset(100000);
-  // _pairs->values(dataset);
-  // delete _pairs;
-  // int dataset_size = dataset.getLength();
-  // RandomizeDataset(dataset);
-  // std::cout << "Done with dataset, final number of rows: " << dataset_size << std::endl;
+  auto _pairs = Pairs::PairsToDataset(pairs, params.outType, params.outName);
+  FastVector<std::string> dataset(100000);
+  _pairs->values(dataset);
+  delete _pairs;
+  int dataset_size = dataset.getLength();
+  RandomizeDataset(dataset);
+  std::cout << "Done with dataset, final number of rows: " << dataset_size << std::endl;
   /*--------------------  Part 2 -----------------------------------*/
   FastVector<CameraDTO*> cameras(30000);
   FastVector<std::string> texts(30000);
-  // HashMap<int> ids(30000);
+  HashMap<int> ids(30000);
 
   std::cout << "Getting cameras..." << std::endl;
   JSON::loadData(path_cameras, cameras);
   for (int i = 0; i < cameras.getLength(); i++) {
     auto str = cameras[i]->getAllProperties();
     texts.append(str);
-    // ids.set(cameras[i]->getId(), i);
+    ids.set(cameras[i]->getId(), i);
     delete cameras[i];
   }
   std::cout << "Tokenizing...\n";
@@ -176,9 +176,9 @@ int main(int argc, char** argv) {
   v.getVocab(vec);
   int vocab_size = vec.getLength();
   std::cout << "Vocabulary size: " << vec.getLength() << std::endl;
-  // float** vectors = new float*[texts.getLength()];
-  // std::cout << "Transforming...\n";
-  // v.transform(tokenized, vectors);
+  float** vectors = new float*[texts.getLength()];
+  std::cout << "Transforming...\n";
+  v.transform(tokenized, vectors);
   for (int i = 0; i < tokenized->getLength(); i++) {
     delete (*tokenized)[i];
   }
@@ -188,27 +188,27 @@ int main(int argc, char** argv) {
     delete entry;
   }
   // /*--------------------  Part 3 -----------------------------------*/
-  // int train_size = (int)(dataset_size * 0.8);
-  // int test_size = dataset_size - train_size;
-  // std::cout << "Dataset size: " << dataset_size << std::endl;
-  // std::cout << "Train size: " << train_size << std::endl;
-  // std::cout << "Test size: " << test_size << std::endl;
+  int train_size = (int)(dataset_size * 0.8);
+  int test_size = dataset_size - train_size;
+  std::cout << "Dataset size: " << dataset_size << std::endl;
+  std::cout << "Train size: " << train_size << std::endl;
+  std::cout << "Test size: " << test_size << std::endl;
 
-  // Logistic<float> model(vocab_size);
-  // std::cout << "Fitting model...\n";
-  // model.fit(dataset, vectors, ids, train_size, 0.01, 5);
-  // std::cout << "Testing...\n";
-  // FastVector<int> y_true(10000);
-  // auto pred = model.predict(dataset, vectors, ids, dataset_size, train_size, y_true);
+  Logistic<float> model(vocab_size);
+  std::cout << "Fitting model...\n";
+  model.fit(dataset, vectors, ids, train_size, 0.01, 5);
+  std::cout << "Testing...\n";
+  FastVector<int> y_true(10000);
+  auto pred = model.predict(dataset, vectors, ids, dataset_size, train_size, y_true);
 
-  // std::cout << "\nF1: " << Metrics::f1_score(y_true, pred) << std::endl;
-  // std::cout << "Precision: " << Metrics::precision_score(y_true, pred) << std::endl;
-  // std::cout << "Recall: " << Metrics::recall_score(y_true, pred) << std::endl;
-  // std::cout << "Accuracy: " << Metrics::accuracy_score(y_true, pred) << std::endl;
-  // delete[] pred;
-  // for (int i = 0; i < texts.getLength(); i++) {
-  //   delete[] vectors[i];
-  // }
-  // delete[] vectors;
+  std::cout << "\nF1: " << Metrics::f1_score(y_true, pred) << std::endl;
+  std::cout << "Precision: " << Metrics::precision_score(y_true, pred) << std::endl;
+  std::cout << "Recall: " << Metrics::recall_score(y_true, pred) << std::endl;
+  std::cout << "Accuracy: " << Metrics::accuracy_score(y_true, pred) << std::endl;
+  delete[] pred;
+  for (int i = 0; i < texts.getLength(); i++) {
+    delete[] vectors[i];
+  }
+  delete[] vectors;
   return 0;
 }
