@@ -15,6 +15,7 @@ class TfIdfVectorizer {
  public:
   TfIdfVectorizer();
   void fit(Vector2D sentences);
+  void fit(Vector2D sentences, int max_features);
   void transform(Vector2D sentences,
                  float** vectors);
   ~TfIdfVectorizer();

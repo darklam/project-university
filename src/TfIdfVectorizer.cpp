@@ -3,6 +3,7 @@
 #include <mutex>
 #include <thread>
 #include "Set.hpp"
+#include "Sort.hpp"
 
 TfIdfVectorizer::TfIdfVectorizer() {
   this->vocab = new HashMap<WordInfo*>();
@@ -157,6 +158,60 @@ void TfIdfVectorizer::fit(Vector2D sentences) {
       delete entries[i];
     }
   }
+}
+
+void TfIdfVectorizer::fit(Vector2D sentences, int max_featues){
+  HashMap<int> termFreq;
+  float documentsCount = sentences->getLength();
+  for (int i = 0; i < sentences->getLength(); i++) {
+    auto sentence = (*sentences)[i];
+    auto sentenceLen = sentence->getLength();
+    Set visited;
+    for (int j = 0; j < sentenceLen; j++) {
+      auto word = (*sentence)[j];
+      HashResult<WordInfo*> res;
+      this->vocab->get(word, &res);
+      if (!visited.exists(word)) {
+        visited.add(word);
+        HashResult<int> res;
+        termFreq.get(word, &res);
+        termFreq.set(word, res.hasValue ? res.value + 1 : 1);
+      }
+
+      if (!res.hasValue) {
+        auto info = new WordInfo();
+        this->vocabSize++;
+        this->vocab->set(word, info);
+      }
+    }
+  }
+
+  FastVector<Entry<int>*> entries;
+  termFreq.getEntries(entries);
+  FastVector<int> indexes(max_featues);
+  Sort::sort(max_featues, entries, indexes);
+  int entriesLength = entries.getLength();
+  int index = 0;
+  for (int i = 0; i < entriesLength; i++) {
+      auto entry = *entries[i];
+      HashResult<WordInfo*> res;
+      this->vocab->get(entry.key, &res);
+      if (!res.hasValue) {
+        std::cout << "Bruuuuuh this word is not in the vocab?\n";
+        return;
+      }
+      if (!indexes.includes(i)) {
+        this->vocab->remove(entry.key);
+        delete res.value;
+        this->vocabSize--;
+        delete entries[i];
+        continue;
+      }
+      auto idf = documentsCount / entry.value;
+      res.value->idf = log(idf);
+      res.value->index = index++;
+      delete entries[i];
+    }
 }
 
 void TfIdfVectorizer::getVocab(FastVector<Entry<WordInfo*>*>& vec) {

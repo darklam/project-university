@@ -171,7 +171,7 @@ int main(int argc, char** argv) {
   auto tokenized = TextProcessing::tokenizePlus(texts);
   TfIdfVectorizer v;
   std::cout << "Fitting the vectorizer...\n";
-  v.fit(tokenized);
+  v.fit(tokenized, 1000);
   FastVector<Entry<WordInfo*>*> vec;
   v.getVocab(vec);
   int vocab_size = vec.getLength();
