@@ -11,11 +11,13 @@
 namespace Pairs {
     void PairsToClique(CustomVector<Pair*>* pairs, Clique* clique);
     void deleteEntries(List<Entry<Set*>*>* entries);
+    void deleteList(List<Entry<Set*>*>* entries);
     List<Entry<Set*>*>* RemoveDup(List<Entry<Set*>*>* entries);
     std::string sortIds(std::string id1, std::string id2);
     HashMap<std::string>* createDataset(List<Entry<Set*>*>* positive, Clique *clique);
     HashMap<std::string>* createDataset(List<Entry<Set*>*>* positive, List<Entry<Set*>*>* negative);
     HashMap<std::string>* PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output);
+    HashMap<std::string>* PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output, Clique* clique);
 }
 
 

@@ -36,6 +36,21 @@ void Pairs::deleteEntries(List<Entry<Set*>*>* entries){
   delete entries;
 }
 
+void Pairs::deleteList(List<Entry<Set*>*>* entries){
+  for(auto i = entries->getRoot(); i != nullptr; i = *(i->getNext())){
+    auto cur = i->getValue();
+    auto item = cur->value;
+    auto items = item->getItems();
+    for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
+      auto val = j->getValue();
+      delete val;
+    }
+    delete items;
+    delete cur;
+  }
+  delete entries;
+}
+
 List<Entry<Set*>*>* Pairs::RemoveDup(List<Entry<Set*>*>* entries) {
   HashMap<Set*> dedupe;
   for (auto j = entries->getRoot(); j != nullptr; j = *(j->getNext())) {
@@ -147,8 +162,7 @@ HashMap<std::string>* Pairs::createDataset(List<Entry<Set*>*>* positive, List<En
 }
 
 
-HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output){
-    auto clique = new Clique();
+HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output, Clique* clique){
     PairsToClique(pairs, clique);
     auto positives = clique->getPositiveEntries();
     auto pos_unique = RemoveDup(positives);
@@ -162,8 +176,7 @@ HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs, std::str
       CSV::WriteCSV(output, pos_unique);
     }
     
-    deleteEntries(pos_unique);
-    deleteEntries(neg_unique);
-    delete clique;
+    deleteList(pos_unique);
+    deleteList(neg_unique);
     return _pairs;
 }
