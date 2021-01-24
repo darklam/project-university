@@ -235,7 +235,7 @@ bool checkIfExists(std::string str1, std::string str2, HashMap<int>& existing) {
 }
 
 void iterative_learning(Clique* clique,
-                        Logistic<float>& model,
+                        Logistic<float>* model,
                         FastVector<std::string> camera_ids,
                         FastVector<std::string> dataset,
                         HashMap<int>& existing,
@@ -254,7 +254,7 @@ void iterative_learning(Clique* clique,
         batches.append(BATCH_SIZE);
       }
       batches.append(remaining);
-      model.fit(dataset, vectors, ids, batches, 0.01);
+      model->fit(dataset, vectors, ids, batches, 0.01);
     } else {
       auto positives = clique->getPositiveEntries();
       auto pos_unique = Pairs::RemoveDup(positives);
@@ -275,9 +275,8 @@ void iterative_learning(Clique* clique,
         batches.append(BATCH_SIZE);
       }
       batches.append(remaining);
-      model.fit(new_dataset, vectors, ids, batches, 0.01);
+      model->fit(new_dataset, vectors, ids, batches, 0.01);
     }
-    // FastVector<probability*> new_set(400000);
     FILE* file;
     file = fopen("nes_set.csv", "w+");
     for (int i = 0; i < 1000; i++) {
@@ -287,7 +286,7 @@ void iterative_learning(Clique* clique,
         }
         FastVector<float> vec(2000);
         asVector(camera_ids[i], camera_ids[j], vectors, ids, vec);
-        auto prob = model.prob(vec);
+        auto prob = model->prob(vec);
         if ((prob < threshold) || (prob > 1 - threshold)) {
           std::cout << prob << " "
                     << " " << threshold << " " << 1 - threshold << std::endl;
@@ -306,14 +305,15 @@ void iterative_learning(Clique* clique,
     threshold += step;
     step *= 2;
   }
-
-  auto positives1 = clique->getPositiveEntries();
-  auto pos_unique1 = Pairs::RemoveDup(positives1);
-  auto negatives1 = clique->getNegativeEntries();
-  auto neg_unique1 = Pairs::RemoveDup(negatives1);
-  Pairs::deleteEntries(neg_unique1);
-  Pairs::deleteEntries(pos_unique1);
   delete clique;
+}
+
+
+void printMetrics(FastVector<int>& y_true, int* pred){
+  std::cout << "\nF1: " << Metrics::f1_score(y_true, pred) << std::endl;
+  std::cout << "Precision: " << Metrics::precision_score(y_true, pred) << std::endl;
+  std::cout << "Recall: " << Metrics::recall_score(y_true, pred) << std::endl;
+  std::cout << "Accuracy: " << Metrics::accuracy_score(y_true, pred) << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -350,7 +350,7 @@ int main(int argc, char** argv) {
   auto tokenized = TextProcessing::tokenizePlus(texts);
   TfIdfVectorizer v;
   std::cout << "Fitting the vectorizer...\n";
-  v.fit(tokenized, 1000);
+  v.fit(tokenized);
   FastVector<Entry<WordInfo*>*> vec;
   v.getVocab(vec);
   int vocab_size = vec.getLength();
@@ -405,54 +405,42 @@ int main(int argc, char** argv) {
   batches.append(remaining);
 
   // Logistic model
-  Logistic<float> model(vocab_size);
+  Logistic<float>* model = new Logistic<float>(vocab_size);
   std::cout << "Fitting model...\n";
-  model.fit(train_set, vectors, ids, batches, 0.01);
+  model->fit(train_set, vectors, ids, batches, 0.01);
 
   std::cout << "\nTesting train_set...\n";
   FastVector<int> train_labels(10000);
-  auto train_pred = model.predict(train_set, vectors, ids, train_labels);
-  std::cout << "\nF1: " << Metrics::f1_score(train_labels, train_pred)
-            << std::endl;
-  std::cout << "Precision: "
-            << Metrics::precision_score(train_labels, train_pred) << std::endl;
-  std::cout << "Recall: " << Metrics::recall_score(train_labels, train_pred)
-            << std::endl;
-  std::cout << "Accuracy: " << Metrics::accuracy_score(train_labels, train_pred)
-            << std::endl;
+  auto train_pred = model->predict(train_set, vectors, ids, train_labels);
+  printMetrics(train_labels, train_pred);
   delete[] train_pred;
 
-  iterative_learning(clique, model, camera_ids, train_set, existing_pairs, ids,
-                     vectors);
+  // iterative_learning(clique, model, camera_ids, train_set, existing_pairs, ids,
+  //                    vectors);
+
+  auto positives1 = clique->getPositiveEntries();
+  auto pos_unique1 = Pairs::RemoveDup(positives1);
+  auto negatives1 = clique->getNegativeEntries();
+  auto neg_unique1 = Pairs::RemoveDup(negatives1);
+  Pairs::deleteEntries(neg_unique1);
+  Pairs::deleteEntries(pos_unique1);
+  delete clique;
 
   std::cout << "\nTesting validation set...\n";
   FastVector<int> val_labels(10000);
-  auto val_pred = model.predict(test_set, vectors, ids, val_labels);
-  std::cout << "\nF1: " << Metrics::f1_score(val_labels, val_pred) << std::endl;
-  std::cout << "Precision: " << Metrics::precision_score(val_labels, val_pred)
-            << std::endl;
-  std::cout << "Recall: " << Metrics::recall_score(val_labels, val_pred)
-            << std::endl;
-  std::cout << "Accuracy: " << Metrics::accuracy_score(val_labels, val_pred)
-            << std::endl;
+  auto val_pred = model->predict(test_set, vectors, ids, val_labels);
+  printMetrics(val_labels, val_pred);
   delete[] val_pred;
 
   std::cout << "\nTesting test set...\n";
   FastVector<int> test_labels(10000);
-  auto test_pred = model.predict(test_set, vectors, ids, test_labels);
-  std::cout << "\nF1: " << Metrics::f1_score(test_labels, test_pred)
-            << std::endl;
-  std::cout << "Precision: " << Metrics::precision_score(test_labels, test_pred)
-            << std::endl;
-  std::cout << "Recall: " << Metrics::recall_score(test_labels, test_pred)
-            << std::endl;
-  std::cout << "Accuracy: " << Metrics::accuracy_score(test_labels, test_pred)
-            << std::endl;
+  auto test_pred = model->predict(test_set, vectors, ids, test_labels);
+  printMetrics(test_labels, test_pred);
   delete[] test_pred;
-  printf("here\n");
   for (int i = 0; i < texts.getLength(); i++) {
     delete[] vectors[i];
   }
   delete[] vectors;
+  delete model;
   return 0;
 }

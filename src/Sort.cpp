@@ -36,3 +36,20 @@ void Sort::sortMin(int length, FastVector<Entry<int>*>& src, FastVector<int>& de
         dest.append(pos);
     }
 }
+
+
+void Sort::sort(int length, FastVector<float>& src, FastVector<int>& dest){
+    for(int i = 0; i < length; i++){
+        int min = 9999999999999999;
+        int pos = -1;
+        for(int j = 0; j < src.getLength(); j++){
+            if(dest.includes(j)) continue;
+            auto entry = src.get(j);
+            if(min > entry){
+                min = entry;
+                pos = j;
+            }
+        }
+        dest.append(pos);
+    }
+}

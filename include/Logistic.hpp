@@ -17,7 +17,7 @@ class Logistic {
             this->b1 = new float[vocab_size * 2];
             this->loss_history = new FastVector<float>(10);
             for(int i = 0; i < vocab_size * 2; i++){
-                this->b1[i] = 0.0;
+                this->b1[i] = 1.0;
             }
             this->size = vocab_size * 2;
         };
@@ -73,6 +73,7 @@ class Logistic {
                     for(auto j = 0; j < this->size; j++){
                         ws.append(0.0);
                     }
+                    float w0 = 0.0;
                     float batch_loss = 0.0;
                     for(int b = 0; b < batch_size; b++){
                         FastVector<float> vec(this->size);
@@ -84,10 +85,11 @@ class Logistic {
                             auto value = ws[j] + (pred - y_true) * vec[j];
                             ws.set(j, value);
                         }
+                        w0 += (pred - y_true);
                         batch_loss += _loss;
                         cur++;
                     }
-                    this->update_weights(ws, batch_size);
+                    this->update_weights(ws, w0, batch_size);
                     total_loss += (batch_loss / batch_size);
                     // std::cout << "Epoch: " << e << " - Batch: " << i << " - Loss:" << batch_loss / batch_size << std::endl;
                 }
@@ -190,9 +192,10 @@ class Logistic {
             }
         }
 
-        void update_weights(FastVector<float>& ws, int size){
+        void update_weights(FastVector<float>& ws, float w0, int size){
+            this->b0 = this->b0 - this->learning_rate * w0 / size;  
             for(int i = 0; i < this->size; i++){
-                this->b1[i] = this->b1[i] + this->learning_rate * (ws[i] / size);
+                this->b1[i] = this->b1[i] - this->learning_rate * (ws[i] / size);
             }
         }
 
