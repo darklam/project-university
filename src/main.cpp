@@ -1,25 +1,24 @@
 #include <unistd.h>
 #include <TextProcessing.hpp>
+#include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <ctime>
-#include <cstdlib>
 #include <string>
+#include "BowVectorizer.hpp"
 #include "CSV.hpp"
 #include "Clique.hpp"
 #include "FastVector.hpp"
 #include "FileSystem.hpp"
 #include "HashMap.hpp"
 #include "JSON.hpp"
+#include "JobScheduler.hpp"
 #include "List.hpp"
 #include "Logistic.hpp"
 #include "Metrics.hpp"
 #include "Pairs.hpp"
 #include "Set.hpp"
-#include "Utils.hpp"
 #include "TfIdfVectorizer.hpp"
-#include "BowVectorizer.hpp"
-#include <TextProcessing.hpp>
+#include "Utils.hpp"
 
 #define BATCH_SIZE 1024
 
@@ -163,7 +162,7 @@ void getDatasetAsVectors(FastVector<std::string> &dataset, T **vectors,
 {
   for (int i = 0; i < dataset.getLength(); i++){
     auto row = dataset[i];
-    float *vec = new float[max_features];
+    float* vec = new float[max_features];
     int _true = getVector(row, vectors, ids, &vec, max_features);
     final.append(vec);
     y_true.append(_true);
