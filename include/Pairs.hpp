@@ -16,8 +16,10 @@ namespace Pairs {
     std::string sortIds(std::string id1, std::string id2);
     HashMap<std::string>* createDataset(List<Entry<Set*>*>* positive, Clique *clique);
     HashMap<std::string>* createDataset(List<Entry<Set*>*>* positive, List<Entry<Set*>*>* negative);
+    HashMap<std::string>* createDataset(List<Entry<Set*>*>* positive, List<Entry<Set*>*>* negative, HashMap<int>& existing);
     HashMap<std::string>* PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output);
     HashMap<std::string>* PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output, Clique* clique);
+    HashMap<std::string>* PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output, Clique* clique, HashMap<int>& existing);
 }
 
 

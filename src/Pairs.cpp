@@ -161,6 +161,62 @@ HashMap<std::string>* Pairs::createDataset(List<Entry<Set*>*>* positive, List<En
   return pairs;
 }
 
+HashMap<std::string>* Pairs::createDataset(List<Entry<Set*>*>* positive, List<Entry<Set*>*>* negative, HashMap<int>& existing){
+  auto pairs = new HashMap<std::string>(50000);
+  for (auto i = positive->getRoot(); i != nullptr; i = *(i->getNext())) {
+    auto cur = i->getValue();
+    auto item = cur->value;
+    auto items = item->getItems();
+    for (auto j = items->getRoot(); j != nullptr; j = *(j->getNext())) {
+      auto val = j->getValue();
+      for (auto k = *(j->getNext()); k != nullptr; k = *(k->getNext())) {
+        auto val1 = k->getValue();
+        auto str = val->value + "," + val1->value + "," + "1";
+        pairs->set(str, str);
+        existing.set(val->value + val1->value, 0);
+      }
+      delete val;
+    }
+    delete items;
+  }
+
+  for (auto i = negative->getRoot(); i != nullptr; i = *(i->getNext())) {
+    auto cur = i->getValue();
+    auto item = cur->value;
+    auto items = item->getItems();
+    auto key = cur->key;
+    for(auto j = items->getRoot(); j != nullptr; j = *(j->getNext())){
+      auto val = j->getValue();
+      auto str = sortIds(key, val->value);
+      existing.set(key + val->value, 0);
+      pairs->set(str, str);
+      delete val;
+    }
+    delete items;
+  }
+  return pairs;
+}
+
+HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output){
+    Clique* clique = new Clique();
+    PairsToClique(pairs, clique);
+    auto positives = clique->getPositiveEntries();
+    auto pos_unique = RemoveDup(positives);
+    auto negatives = clique->getNegativeEntries();
+    auto _pairs = createDataset(pos_unique, negatives);
+    auto neg_unique = RemoveDup(negatives);
+    // auto _pairs = createDataset(pos_unique, clique);
+    if(type == "pairs"){
+      CSV::WriteCSVPairs(output, pos_unique);
+    }else if (type == "all"){
+      CSV::WriteCSV(output, pos_unique);
+    }
+    
+    deleteList(pos_unique);
+    deleteList(neg_unique);
+    delete clique;
+    return _pairs;
+}
 
 HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output, Clique* clique){
     PairsToClique(pairs, clique);
@@ -168,6 +224,26 @@ HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs, std::str
     auto pos_unique = RemoveDup(positives);
     auto negatives = clique->getNegativeEntries();
     auto _pairs = createDataset(pos_unique, negatives);
+    auto neg_unique = RemoveDup(negatives);
+    // auto _pairs = createDataset(pos_unique, clique);
+    if(type == "pairs"){
+      CSV::WriteCSVPairs(output, pos_unique);
+    }else if (type == "all"){
+      CSV::WriteCSV(output, pos_unique);
+    }
+    
+    deleteList(pos_unique);
+    deleteList(neg_unique);
+    return _pairs;
+}
+
+
+HashMap<std::string>* Pairs::PairsToDataset(CustomVector<Pair*>* pairs, std::string type, std::string output, Clique* clique, HashMap<int>& existing){
+    PairsToClique(pairs, clique);
+    auto positives = clique->getPositiveEntries();
+    auto pos_unique = RemoveDup(positives);
+    auto negatives = clique->getNegativeEntries();
+    auto _pairs = createDataset(pos_unique, negatives, existing);
     auto neg_unique = RemoveDup(negatives);
     // auto _pairs = createDataset(pos_unique, clique);
     if(type == "pairs"){

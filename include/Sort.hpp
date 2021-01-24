@@ -4,7 +4,8 @@
 #include "HashMap.hpp"
 
 namespace Sort {
-    void sort(int length, FastVector<Entry<int>*>& src, FastVector<int>& dest);
+    void sortMax(int length, FastVector<Entry<int>*>& src, FastVector<int>& dest);
+    void sortMin(int length, FastVector<Entry<int>*>& src, FastVector<int>& dest);
 }
 
 

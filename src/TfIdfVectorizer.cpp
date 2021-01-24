@@ -189,7 +189,7 @@ void TfIdfVectorizer::fit(Vector2D sentences, int max_featues){
   FastVector<Entry<int>*> entries;
   termFreq.getEntries(entries);
   FastVector<int> indexes(max_featues);
-  Sort::sort(max_featues, entries, indexes);
+  Sort::sortMax(max_featues, entries, indexes);
   int entriesLength = entries.getLength();
   int index = 0;
   for (int i = 0; i < entriesLength; i++) {
