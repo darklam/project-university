@@ -18,15 +18,16 @@ struct Job {
 class JobScheduler {
 public:
 
-  JobScheduler();
-
   void addJob(Job* j);
-
-  ~JobScheduler();
 
   void waitAllJobs();
 
+  static JobScheduler* getInstance();
+
+  static void destroy();
+
 private:
+  static JobScheduler* instance;
   int cores = std::thread::hardware_concurrency();
   int* statuses;
   int queueMax = cores * 2; // * 2 to have some jobs on the ready
@@ -38,6 +39,8 @@ private:
   std::mutex statusesMutex;
   std::mutex m;
   std::thread** threadPool = new std::thread*[cores];
+  JobScheduler();
+  ~JobScheduler();
 };
 
 #endif
