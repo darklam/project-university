@@ -19,7 +19,6 @@ TfIdfVectorizer::~TfIdfVectorizer() {
 }
 
 void TfIdfVectorizer::fit(Vector2D sentences) {
-  auto useThreads = Utils::getEnvVar("USE_THREADS");
   HashMap<int> termFreq;
   float documentsCount = sentences->getLength();
   for (int i = 0; i < sentences->getLength(); i++) {
