@@ -128,12 +128,6 @@ void TfIdfVectorizer::fit(Vector2D sentences) {
     termFreq.getEntries(entries);
     int entriesLength = entries.getLength();
 
-    // float mean = 0.0;
-    // for (int i = 0; i < entriesLength; i++) {
-    //   mean += entries[i]->value;
-    // }
-
-    // mean /= entriesLength;
 
     int index = 0;
 
@@ -145,13 +139,6 @@ void TfIdfVectorizer::fit(Vector2D sentences) {
         std::cout << "Bruuuuuh this word is not in the vocab?\n";
         return;
       }
-      // if (entry.value < mean * 0.2) {
-      //   this->vocab->remove(entry.key);
-      //   delete res.value;
-      //   this->vocabSize--;
-      //   delete entries[i];
-      //   continue;
-      // }
       auto idf = documentsCount / entry.value;
       res.value->idf = log(idf);
       res.value->index = index++;

@@ -1,4 +1,5 @@
 #ifndef LOGISTIC_HPP
+#define LOGISTIC_HPP
 #include "CustomVector.hpp"
 #include "FastVector.hpp"
 #include <string>
