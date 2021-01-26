@@ -21,6 +21,9 @@ void Clique::setPair(std::string id1, std::string id2){
     if(this->existInPositives(id1, id2)){
         return;
     }
+    if(this->existInNegatives(id1, id2)){
+        return;
+    }
     int flag = this->PairMergeNegatives(id1, id2);
     
     HashResult<Set*> neg;
@@ -154,6 +157,9 @@ void Clique::UpdateNegativesWithNewPair(std::string id1){
 
 void Clique::NegativePair(std::string id1, std::string id2){
     if(this->existInNegatives(id1, id2)){
+        return;
+    }
+    if(this->existInPositives(id1, id2)){
         return;
     }
     HashResult<Set*> pos1;

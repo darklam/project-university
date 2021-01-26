@@ -128,12 +128,6 @@ void TfIdfVectorizer::fit(Vector2D sentences) {
     termFreq.getEntries(entries);
     int entriesLength = entries.getLength();
 
-    float mean = 0.0;
-    for (int i = 0; i < entriesLength; i++) {
-      mean += entries[i]->value;
-    }
-
-    mean /= entriesLength;
 
     int index = 0;
 
@@ -144,13 +138,6 @@ void TfIdfVectorizer::fit(Vector2D sentences) {
       if (!res.hasValue) {
         std::cout << "Bruuuuuh this word is not in the vocab?\n";
         return;
-      }
-      if (entry.value < mean * 0.2) {
-        this->vocab->remove(entry.key);
-        delete res.value;
-        this->vocabSize--;
-        delete entries[i];
-        continue;
       }
       auto idf = documentsCount / entry.value;
       res.value->idf = log(idf);
@@ -189,7 +176,7 @@ void TfIdfVectorizer::fit(Vector2D sentences, int max_featues){
   FastVector<Entry<int>*> entries;
   termFreq.getEntries(entries);
   FastVector<int> indexes(max_featues);
-  Sort::sort(max_featues, entries, indexes);
+  Sort::sortMax(max_featues, entries, indexes);
   int entriesLength = entries.getLength();
   int index = 0;
   for (int i = 0; i < entriesLength; i++) {
@@ -219,81 +206,59 @@ void TfIdfVectorizer::getVocab(FastVector<Entry<WordInfo*>*>& vec) {
 }
 
 void TfIdfVectorizer::transform(Vector2D sentences, float** vectors) {
-  auto useThreads = Utils::getEnvVar("USE_THREADS");
 
   FastVector<Entry<WordInfo*>*> vocabEntries;
   this->vocab->getEntries(vocabEntries);
-
-  if (useThreads == "1") {
-    auto coreCount = std::thread::hardware_concurrency();
-    std::thread handles[coreCount];
-    std::mutex vectorsMutex;
-    for (int core = 0; core < coreCount; core++) {
-      handles[core] = std::thread([&sentences, &coreCount, core, this,
-                                   &vectorsMutex, &vectors, &vocabEntries]() {
-        int start, end;
-        Utils::getBatchIndex(&start, &end, sentences->getLength(), coreCount,
-                             core);
-        for (int i = start; i < end; i++) {
-          auto sentence = (*sentences)[i];
-          auto sentenceLength = sentence->getLength();
-          float* vec = new float[this->vocabSize];
-          for (int j = 0; j < vocabEntries.getLength(); j++) {
-            auto entry = vocabEntries[j];
-            auto word = entry->key;
-            auto info = entry->value;
-            int occurences = 0;
-            for (int k = 0; k < sentenceLength; k++) {
-              auto currentWord = (*sentence)[k];
-              if (currentWord == word) {
-                occurences++;
-              }
-            }
-            auto termFrequency = occurences / (float)sentenceLength;
-            auto value = termFrequency * info->idf;
-            vec[j] = value;
-          }
-          vectorsMutex.lock();
-          vectors[i] = vec;
-          vectorsMutex.unlock();
-        }
-      });
+  for (int i = 0; i < sentences->getLength(); i++) {
+    auto sentence = (*sentences)[i];
+    auto sentenceLength = sentence->getLength();
+    float* vec = new float[this->vocabSize];
+    for (int j = 0; j < this->vocabSize; j++) {
+      vec[j] = 0;
     }
-    for (int i = 0; i < coreCount; i++) {
-      handles[i].join();
+    HashMap<int> occurencesMap;
+    for (int j = 0; j < sentenceLength; j++) {
+      auto word = (*sentence)[j];
+      HashResult<int> res;
+      occurencesMap.get(word, &res);
+      occurencesMap.set(word, res.hasValue ? res.value + 1 : 1);
     }
-    for (int i = 0; i < vocabEntries.getLength(); i++) {
-      delete vocabEntries[i];
-    }
-  } else {
-    for (int i = 0; i < sentences->getLength(); i++) {
-      auto sentence = (*sentences)[i];
-      auto sentenceLength = sentence->getLength();
-      float* vec = new float[this->vocabSize];
-      for (int j = 0; j < this->vocabSize; j++) {
-        vec[j] = 0;
+    for (int j = 0; j < sentenceLength; j++) {
+      auto word = (*sentence)[j];
+      HashResult<WordInfo*> res;
+      this->vocab->get(word, &res);
+      if (!res.hasValue) {
+        continue;
       }
-      HashMap<int> occurencesMap;
-      for (int j = 0; j < sentenceLength; j++) {
-        auto word = (*sentence)[j];
-        HashResult<int> res;
-        occurencesMap.get(word, &res);
-        occurencesMap.set(word, res.hasValue ? res.value + 1 : 1);
-      }
-      for (int j = 0; j < sentenceLength; j++) {
-        auto word = (*sentence)[j];
-        HashResult<WordInfo*> res;
-        this->vocab->get(word, &res);
-        if (!res.hasValue) {
-          continue;
-        }
-        HashResult<int> freq;
-        occurencesMap.get(word, &freq);
-        vec[res.value->index] = freq.value * res.value->idf;
-        vec[res.value->index] /= sentenceLength;
-      }
-      vectors[i] = vec;
+      HashResult<int> freq;
+      occurencesMap.get(word, &freq);
+      vec[res.value->index] = freq.value * res.value->idf;
+      vec[res.value->index] /= sentenceLength;
     }
+    vectors[i] = vec;
+  }
+  
+  std::cout << "Extracting top 1000 tf-idf...\n";
+  FastVector<float> mean(this->vocabSize);
+  for(int word = 0; word < this->vocabSize; word++){
+    float m = 0.0;
+    for(int i = 0; i < sentences->getLength(); i++){
+      m += vectors[i][word];
+    }
+    mean.append(m);
+  }
+  FastVector<int> positions(1000);
+  Sort::sort(1000, mean, positions);
+  for(int i = 0; i < sentences->getLength(); i++){
+    float* _vec = new float[1000];
+    for (int j = 0; j < 1000; j++) {
+      _vec[j] = 0;
+    }
+    for(int p = 0; p < 1000; p++){
+      _vec[p] = vectors[i][positions[p]];
+    }
+    delete[] vectors[i];
+    vectors[i] = _vec;
   }
   for(int i = 0; i < vocabEntries.getLength(); i++){
     auto entry = vocabEntries.get(i);

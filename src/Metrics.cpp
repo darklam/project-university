@@ -76,3 +76,10 @@ float Metrics::accuracy_score(FastVector<int>& y_true, int *y_pred){
     float result = (float)((float)(match) / (float)(size));
     return result;
 }
+
+void Metrics::printMetrics(FastVector<int>& y_true, int* pred){
+  std::cout << "\nF1: " << Metrics::f1_score(y_true, pred) << std::endl;
+  std::cout << "Precision: " << Metrics::precision_score(y_true, pred) << std::endl;
+  std::cout << "Recall: " << Metrics::recall_score(y_true, pred) << std::endl;
+  std::cout << "Accuracy: " << Metrics::accuracy_score(y_true, pred) << std::endl;
+}

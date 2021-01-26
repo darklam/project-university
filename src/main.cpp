@@ -19,6 +19,10 @@
 #include "Set.hpp"
 #include "TfIdfVectorizer.hpp"
 #include "Utils.hpp"
+#include "DatasetsFunc.hpp"
+#include "Iterative.hpp"
+
+#define BATCH_SIZE 1024
 
 struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
@@ -26,41 +30,6 @@ struct ProgramParams {
   std::string inName = "W_Dataset.csv";
   std::string inCameras = "cameras";
 };
-
-void balanceDataset(FastVector<std::string>& dataset,
-                    FastVector<std::string>& train,
-                    int size) {
-  int positives = 0;
-  int negatives = 0;
-  for (int i = 0; i < size; i++) {
-    auto row = dataset.get(i);
-    if (row.back() == '1') {
-      train.append(row);
-      positives++;
-    } else {
-      if (positives >= negatives + 1) {
-        train.append(row);
-        negatives++;
-      }
-    }
-  }
-}
-
-void RandomizeDataset(FastVector<std::string>& dataset) {
-  int total_size = dataset.getLength();
-  int pos1;
-  int pos2;
-  for (int i = 0; i < total_size; i++) {
-    pos1 = rand() % total_size;
-    pos2 = rand() % total_size;
-    if (pos1 == pos2) {
-      continue;
-    }
-    auto temp = dataset.get(pos1);
-    dataset.set(pos1, dataset.get(pos2));
-    dataset.set(pos2, temp);
-  }
-}
 
 void parseArgs(int argc, char** argv, ProgramParams* params) {
   for (int i = 0; i < argc; i++) {
@@ -88,53 +57,6 @@ void parseArgs(int argc, char** argv, ProgramParams* params) {
   }
 }
 
-template <typename T>
-int getVector(std::string row,
-              T** vectors,
-              HashMap<int>& ids,
-              float** vector,
-              int max_length) {
-  std::string tokens[3];
-  Utils::splitStringLite(std::string(row), ",", tokens, 3);
-  HashResult<int> res1;
-  ids.get(tokens[0], &res1);
-  if (!res1.hasValue) {
-    printf("something bad\n");
-    exit(1);
-  }
-  HashResult<int> res2;
-  ids.get(tokens[1], &res2);
-  if (!res2.hasValue) {
-    printf("something bad\n");
-    exit(1);
-  }
-  auto v1 = vectors[res1.value];
-  auto v2 = vectors[res2.value];
-
-  for (int i = 0; i < max_length; i++) {
-    float min = v1[i] + v2[i];
-    min /= 2;
-    (*vector)[i] = min;
-  }
-  return atoi(tokens[2].c_str());
-}
-
-template <typename T>
-void getDatasetAsVectors(FastVector<std::string>& dataset,
-                         T** vectors,
-                         HashMap<int>& ids,
-                         FastVector<float*>& final,
-                         FastVector<int>& y_true,
-                         int max_features) {
-  for (int i = 0; i < dataset.getLength(); i++) {
-    auto row = dataset[i];
-    float* vec = new float[max_features];
-    int _true = getVector(row, vectors, ids, &vec, max_features);
-    final.append(vec);
-    y_true.append(_true);
-  }
-}
-
 int main(int argc, char** argv) {
   srand(time(NULL));
   ProgramParams params;
@@ -148,36 +70,29 @@ int main(int argc, char** argv) {
   getcwd(cwd_cameras, len);
   auto path_cameras = FileSystem::join(cwd_cameras, params.inCameras);
 
-  /*--------------------  Part 1 -----------------------------------*/
-  std::cout << "Reading w_dataset..." << std::endl;
-  auto pairs = CSV::ReadCSV(path_dataset);
-
-  auto _pairs = Pairs::PairsToDataset(pairs, params.outType, params.outName);
-  FastVector<std::string> dataset(100000);
-  _pairs->values(dataset);
-  delete _pairs;
-  int dataset_size = dataset.getLength();
-  RandomizeDataset(dataset);
-  std::cout << "Done with dataset, final number of rows: " << dataset_size
-            << std::endl;
-  /*--------------------  Part 2 -----------------------------------*/
   FastVector<CameraDTO*> cameras(30000);
   FastVector<std::string> texts(30000);
   HashMap<int> ids(30000);
 
+  /* read folder with cameras and extract values */
   std::cout << "Getting cameras..." << std::endl;
   JSON::loadData(path_cameras, cameras);
-  for (int i = 0; i < cameras.getLength(); i++) {
+  std::string* camera_ids = new std::string[cameras.getLength()];
+  int total_cameras = cameras.getLength();
+  for (int i = 0; i < total_cameras; i++) {
     auto str = cameras[i]->getAllProperties();
     texts.append(str);
+    camera_ids[i] = cameras[i]->getId();
     ids.set(cameras[i]->getId(), i);
     delete cameras[i];
   }
+
+  /*tokenize specs and apply vectorization with max features 1000 */
   std::cout << "Tokenizing...\n";
   auto tokenized = TextProcessing::tokenizePlus(texts);
   TfIdfVectorizer v;
   std::cout << "Fitting the vectorizer...\n";
-  v.fit(tokenized, 1000);
+  v.fit(tokenized);
   FastVector<Entry<WordInfo*>*> vec;
   v.getVocab(vec);
   int vocab_size = vec.getLength();
@@ -185,6 +100,8 @@ int main(int argc, char** argv) {
   float** vectors = new float*[texts.getLength()];
   std::cout << "Transforming...\n";
   v.transform(tokenized, vectors);
+
+  /* delete unwanted variables */
   for (int i = 0; i < tokenized->getLength(); i++) {
     delete (*tokenized)[i];
   }
@@ -193,31 +110,77 @@ int main(int argc, char** argv) {
     auto entry = vec.get(i);
     delete entry;
   }
-  // /*--------------------  Part 3 -----------------------------------*/
-  int train_size = (int)(dataset_size * 0.8);
-  int test_size = dataset_size - train_size;
-  std::cout << "Dataset size: " << dataset_size << std::endl;
-  std::cout << "Train size: " << train_size << std::endl;
-  std::cout << "Test size: " << test_size << std::endl;
+  
 
-  Logistic<float> model(vocab_size);
+  /* read csv */
+  std::cout << "Reading w_dataset..." << std::endl;
+  auto pairs = CSV::ReadCSV(path_dataset);
+  Clique* clique = new Clique();
+  HashMap<int> existing_pairs(30000);
+  std::cout << "Got pairs creating dataset" << std::endl;
+
+  auto _pairs = Pairs::PairsToDataset(pairs, params.outType, params.outName,
+                                      clique, existing_pairs);
+  FastVector<std::string> dataset(100000);
+  _pairs->values(dataset);
+  delete _pairs;
+  int dataset_size = dataset.getLength();
+  std::cout << "Done with dataset, final number of rows: " << dataset_size << std::endl;
+  int train_size = 0.6 * dataset.getLength();
+  int test_size = 0.2 * dataset.getLength() + 1;
+  FastVector<std::string> train_set(train_size);
+  FastVector<std::string> val_set(test_size);
+  FastVector<std::string> test_set(test_size);
+
+  // train test split
+  std::cout << "Splitting dataset..." << std::endl;
+  DatasetsFunc::train_test_split(dataset, train_set, test_set, val_set);
+  std::cout << "Train set size: " << train_set.getLength() << std::endl;
+  std::cout << "Test set size: " << test_set.getLength() << std::endl;
+  std::cout << "Validation set size: " << val_set.getLength() << std::endl;
+
+  // split to batches
+  int total = train_set.getLength() / BATCH_SIZE;
+  FastVector<int> batches(total + 1);
+  DatasetsFunc::split_in_batches(batches, train_set.getLength());
+
+  // Logistic model
+  Logistic<float>* model = new Logistic<float>(1000);
   std::cout << "Fitting model...\n";
-  model.fit(dataset, vectors, ids, train_size, 0.01, 5);
-  std::cout << "Testing...\n";
-  FastVector<int> y_true(10000);
-  auto pred =
-      model.predict(dataset, vectors, ids, dataset_size, train_size, y_true);
+  model->fit(train_set, vectors, ids, batches, 0.01, 5);
 
-  std::cout << "\nF1: " << Metrics::f1_score(y_true, pred) << std::endl;
-  std::cout << "Precision: " << Metrics::precision_score(y_true, pred)
-            << std::endl;
-  std::cout << "Recall: " << Metrics::recall_score(y_true, pred) << std::endl;
-  std::cout << "Accuracy: " << Metrics::accuracy_score(y_true, pred)
-            << std::endl;
-  delete[] pred;
+  std::cout << "\nTesting train_set...\n";
+  FastVector<int> train_labels(10000);
+  auto train_pred = model->predict(train_set, vectors, ids, train_labels);
+  Metrics::printMetrics(train_labels, train_pred);
+  delete[] train_pred;
+
+  // Iterative::train(clique, model, camera_ids, train_set, existing_pairs, ids, vectors, total_cameras);
+
+  auto positives1 = clique->getPositiveEntries();
+  auto pos_unique1 = Pairs::RemoveDup(positives1);
+  auto negatives1 = clique->getNegativeEntries();
+  auto neg_unique1 = Pairs::RemoveDup(negatives1);
+  Pairs::deleteEntries(neg_unique1);
+  Pairs::deleteEntries(pos_unique1);
+  delete clique;
+
+  std::cout << "\nTesting validation set...\n";
+  FastVector<int> val_labels(10000);
+  auto val_pred = model->predict(test_set, vectors, ids, val_labels);
+  Metrics::printMetrics(val_labels, val_pred);
+  delete[] val_pred;
+
+  std::cout << "\nTesting test set...\n";
+  FastVector<int> test_labels(10000);
+  auto test_pred = model->predict(test_set, vectors, ids, test_labels);
+  Metrics::printMetrics(test_labels, test_pred);
+  delete[] test_pred;
   for (int i = 0; i < texts.getLength(); i++) {
     delete[] vectors[i];
   }
   delete[] vectors;
+  delete[] camera_ids;
+  delete model;
   return 0;
 }

@@ -1,4 +1,5 @@
 #ifndef LOGISTIC_HPP
+#define LOGISTIC_HPP
 #include "CustomVector.hpp"
 #include "FastVector.hpp"
 #include <string>
@@ -13,13 +14,13 @@ template <typename T>
 class Logistic {
     public:
         Logistic(int vocab_size){
-            this->b0 = 1.0;
-            this->b1 = new float[vocab_size];
+            this->b0 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+            this->b1 = new float[vocab_size * 2];
             this->loss_history = new FastVector<float>(10);
-            for(int i = 0; i < vocab_size; i++){
-                this->b1[i] = 1.0;
+            for(int i = 0; i < vocab_size * 2; i++){
+                this->b1[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
             }
-            this->size = vocab_size;
+            this->size = vocab_size * 2;
         };
 
         ~Logistic(){
@@ -27,11 +28,11 @@ class Logistic {
             delete this->loss_history;
         }
 
-        void fit(FastVector<std::string>& dataset, T** vectors, HashMap<int>& ids, int size, float learning_rate, int epocs = 1){
+        void fit(FastVector<std::string>& dataset, T** vectors, HashMap<int>& ids, float learning_rate, int epocs = 1){
             this->learning_rate = learning_rate;
             for(int e = 0; e < epocs; e++){
                 float total_loss = 0.0;
-                for(int i = 0; i < size; i++){
+                for(int i = 0; i < dataset.getLength(); i++){
                     FastVector<float> vec(this->size);
                     auto row = dataset.get(i);
                     int y_true = this->getVector(row, vectors, ids, vec);
@@ -40,16 +41,16 @@ class Logistic {
                     this->update_weights(vec, y_true, pred);
                     total_loss += _loss;
                 }
-                std::cout << "Epoch: " << e << " Loss: " << total_loss / size << std::endl;
-                this->loss_history->append(total_loss / size);
+                std::cout << "Epoch: " << e << " - Loss: " << total_loss / dataset.getLength() << std::endl;
+                this->loss_history->append(total_loss / dataset.getLength());
             }
         }
 
-        void fit(FastVector<float*>& dataset, FastVector<int>& labels, int size, float learning_rate, int epocs = 1){
+        void fit(FastVector<float*>& dataset, FastVector<int>& labels, float learning_rate, int epocs = 1){
             this->learning_rate = learning_rate;
             for(int e = 0; e < epocs; e++){
                 float total_loss = 0.0;
-                for(int i = 0; i < size; i++){
+                for(int i = 0; i < dataset.getLength(); i++){
                     auto vec = dataset[i];
                     auto y_true = labels[i];
                     auto pred = this->make_pred(vec);
@@ -57,41 +58,87 @@ class Logistic {
                     this->update_weights(vec, y_true, pred);
                     total_loss += _loss;
                 }
-                std::cout << "Epoch: " << e << " Loss: " << total_loss / size << std::endl;
-                this->loss_history->append(total_loss / size);
+                std::cout << "Epoch: " << e << " - Loss: " << total_loss / dataset.getLength() << std::endl;
+                this->loss_history->append(total_loss / dataset.getLength());
             }
         }
+
+        void fit(FastVector<std::string>& dataset, T** vectors, HashMap<int>& ids, FastVector<int>& batches, float learning_rate, int epocs = 1){
+            this->learning_rate = learning_rate;
+            for(int e = 0; e < epocs; e++){
+                float total_loss = 0.0;
+                int cur = 0;
+                for(int i = 0; i < batches.getLength(); i++){
+                    int batch_size = batches[i];
+                    FastVector<float> ws(this->size);
+                    for(auto j = 0; j < this->size; j++){
+                        ws.append(0.0);
+                    }
+                    float w0 = 0.0;
+                    float batch_loss = 0.0;
+                    for(int b = 0; b < batch_size; b++){
+                        FastVector<float> vec(this->size);
+                        auto row = dataset.get(cur);
+                        int y_true = this->getVector(row, vectors, ids, vec);
+                        auto pred = this->make_pred(vec);
+                        auto _loss = this->cost_function(y_true, pred);
+                        for(auto j = 0; j < this->size; j++){
+                            auto value = ws[j] + (pred - y_true) * vec[j];
+                            ws.set(j, value);
+                        }
+                        w0 += (pred - y_true);
+                        batch_loss += _loss;
+                        cur++;
+                    }
+                    this->update_weights(ws, w0, batch_size);
+                    total_loss += (batch_loss / batch_size);
+                    // std::cout << "Epoch: " << e << " - Batch: " << i << " - Loss:" << batch_loss / batch_size << std::endl;
+                }
+                std::cout << "Epoch: " << e << " - Loss:" << total_loss / batches.getLength() << std::endl;
+                this->loss_history->append(total_loss / batches.getLength());
+            }
+        }
+
+        
         
 
-        int* predict(FastVector<std::string>& dataset, T** vectors, HashMap<int>& ids, int size, int start, FastVector<int>& target){
-            int *predictions = new int[size-start];
-            for(int i = start; i < size; i++){
+        int* predict(FastVector<std::string>& dataset, T** vectors, HashMap<int>& ids, FastVector<int>& target){
+            int *predictions = new int[dataset.getLength()];
+            for(int i = 0; i < dataset.getLength(); i++){
                 FastVector<float> vec(this->size);
                 auto row = dataset.get(i);
                 int y_true = this->getVector(row, vectors, ids, vec);
                 target.append(y_true);
                 auto pred = this->make_pred(vec);
                 if(pred >= 0.5){
-                    predictions[i - start] = 1;
+                    predictions[i] = 1;
                 }else{
-                    predictions[i - start] = 0;
+                    predictions[i] = 0;
                 }
             }
             return predictions;
         }
 
-        int* predict(FastVector<float*> dataset, int end, int start){
-            int *predictions = new int[end - start];
-            for(int i = start; i < end; i++){
+        int* predict(FastVector<float*> dataset){
+            int *predictions = new int[dataset.getLength()];
+            for(int i = 0; i < dataset.getLength(); i++){
                 auto row = dataset[i];
                 auto pred = this->make_pred(row);
                 if(pred >= 0.5){
-                    predictions[i - start] = 1;
+                    predictions[i] = 1;
                 }else{
-                    predictions[i - start] = 0;
+                    predictions[i] = 0;
                 }
             }
             return predictions;
+        }
+
+        float prob(FastVector<T>& vec){
+            return this->make_pred(vec);
+        }
+
+        float prob(T* vec){
+            return this->make_pred(vec);
         }
 
         FastVector<float>* getLoss(){
@@ -122,10 +169,11 @@ class Logistic {
             }
             auto v1 = vectors[res1.value];
             auto v2 = vectors[res2.value];
-            for(int i = 0; i < this->size; i++){
-                float min = v1[i] + v2[i];
-                min /= 2;
-                result.append(min);
+            for(int i = 0; i < this->size / 2; i++){
+                result.append(v1[i]);
+            }
+            for(int j = 0; j < this->size / 2; j++){
+                result.append(v2[j]);
             }
             return atoi(tokens[2].c_str());
         }
@@ -145,6 +193,12 @@ class Logistic {
             }
         }
 
+        void update_weights(FastVector<float>& ws, float w0, int size){
+            this->b0 = this->b0 - this->learning_rate * w0 / size;  
+            for(int i = 0; i < this->size; i++){
+                this->b1[i] = this->b1[i] - this->learning_rate * (ws[i] / size);
+            }
+        }
 
         float make_pred(FastVector<float>& x){
             float p = this->b0;
@@ -167,6 +221,14 @@ class Logistic {
         }
 
         float cost_function(int y, float pred){
+            if(pred == 0.0){
+                if(y == 0) return 0.0;
+                return 1.0;
+            }
+            if(pred == 1.0){
+                if(y == 1) return 0.0;
+                return 1.0;
+            }
             return (-y * log(pred) - (1 - y) * log(1 - pred));
         }
 };
