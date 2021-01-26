@@ -128,7 +128,6 @@ void TfIdfVectorizer::fit(Vector2D sentences) {
     termFreq.getEntries(entries);
     int entriesLength = entries.getLength();
 
-
     int index = 0;
 
     for (int i = 0; i < entriesLength; i++) {
@@ -147,7 +146,7 @@ void TfIdfVectorizer::fit(Vector2D sentences) {
   }
 }
 
-void TfIdfVectorizer::fit(Vector2D sentences, int max_featues){
+void TfIdfVectorizer::fit(Vector2D sentences, int max_featues) {
   HashMap<int> termFreq;
   float documentsCount = sentences->getLength();
   for (int i = 0; i < sentences->getLength(); i++) {
@@ -180,25 +179,25 @@ void TfIdfVectorizer::fit(Vector2D sentences, int max_featues){
   int entriesLength = entries.getLength();
   int index = 0;
   for (int i = 0; i < entriesLength; i++) {
-      auto entry = *entries[i];
-      HashResult<WordInfo*> res;
-      this->vocab->get(entry.key, &res);
-      if (!res.hasValue) {
-        std::cout << "Bruuuuuh this word is not in the vocab?\n";
-        return;
-      }
-      if (!indexes.includes(i)) {
-        this->vocab->remove(entry.key);
-        delete res.value;
-        this->vocabSize--;
-        delete entries[i];
-        continue;
-      }
-      auto idf = documentsCount / entry.value;
-      res.value->idf = log(idf);
-      res.value->index = index++;
-      delete entries[i];
+    auto entry = *entries[i];
+    HashResult<WordInfo*> res;
+    this->vocab->get(entry.key, &res);
+    if (!res.hasValue) {
+      std::cout << "Bruuuuuh this word is not in the vocab?\n";
+      return;
     }
+    if (!indexes.includes(i)) {
+      this->vocab->remove(entry.key);
+      delete res.value;
+      this->vocabSize--;
+      delete entries[i];
+      continue;
+    }
+    auto idf = documentsCount / entry.value;
+    res.value->idf = log(idf);
+    res.value->index = index++;
+    delete entries[i];
+  }
 }
 
 void TfIdfVectorizer::getVocab(FastVector<Entry<WordInfo*>*>& vec) {
@@ -206,7 +205,6 @@ void TfIdfVectorizer::getVocab(FastVector<Entry<WordInfo*>*>& vec) {
 }
 
 void TfIdfVectorizer::transform(Vector2D sentences, float** vectors) {
-
   FastVector<Entry<WordInfo*>*> vocabEntries;
   this->vocab->getEntries(vocabEntries);
   for (int i = 0; i < sentences->getLength(); i++) {
@@ -237,30 +235,30 @@ void TfIdfVectorizer::transform(Vector2D sentences, float** vectors) {
     }
     vectors[i] = vec;
   }
-  
+
   std::cout << "Extracting top 1000 tf-idf...\n";
   FastVector<float> mean(this->vocabSize);
-  for(int word = 0; word < this->vocabSize; word++){
+  for (int word = 0; word < this->vocabSize; word++) {
     float m = 0.0;
-    for(int i = 0; i < sentences->getLength(); i++){
+    for (int i = 0; i < sentences->getLength(); i++) {
       m += vectors[i][word];
     }
     mean.append(m);
   }
   FastVector<int> positions(1000);
   Sort::sort(1000, mean, positions);
-  for(int i = 0; i < sentences->getLength(); i++){
+  for (int i = 0; i < sentences->getLength(); i++) {
     float* _vec = new float[1000];
     for (int j = 0; j < 1000; j++) {
       _vec[j] = 0;
     }
-    for(int p = 0; p < 1000; p++){
+    for (int p = 0; p < 1000; p++) {
       _vec[p] = vectors[i][positions[p]];
     }
     delete[] vectors[i];
     vectors[i] = _vec;
   }
-  for(int i = 0; i < vocabEntries.getLength(); i++){
+  for (int i = 0; i < vocabEntries.getLength(); i++) {
     auto entry = vocabEntries.get(i);
     delete entry;
   }
