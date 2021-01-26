@@ -22,127 +22,47 @@ void TfIdfVectorizer::fit(Vector2D sentences) {
   auto useThreads = Utils::getEnvVar("USE_THREADS");
   HashMap<int> termFreq;
   float documentsCount = sentences->getLength();
-  if (useThreads == "1") {
-    // Make sure those threads NEVER write to the sentences argument
-    // or else we're going down like Bloomberg's campaign
-    auto coreCount = std::thread::hardware_concurrency();
-    std::thread handles[coreCount];
-    std::mutex m;
-    std::mutex termFreqMutex;
-    for (int i = 0; i < coreCount; i++) {
-      handles[i] = std::thread(
-          [&sentences, this, &m, coreCount, i, &termFreqMutex, &termFreq]() {
-            int startIndex, endIndex;
-            Utils::getBatchIndex(&startIndex, &endIndex, sentences->getLength(),
-                                 coreCount, i);
-            for (int k = startIndex; k < endIndex; k++) {
-              auto sentence = (*sentences)[k];
-              auto sentenceLen = sentence->getLength();
-              Set visited;
-              for (int j = 0; j < sentenceLen; j++) {
-                auto word = (*sentence)[j];
-                HashResult<WordInfo*> res;
-                m.lock();
-                this->vocab->get(word, &res);
-                m.unlock();
-                if (!visited.exists(word)) {
-                  visited.add(word);
-                  HashResult<int> res;
-                  termFreqMutex.lock();
-                  termFreq.get(word, &res);
-                  termFreq.set(word, res.hasValue ? res.value + 1 : 1);
-                  termFreqMutex.unlock();
-                }
-
-                if (!res.hasValue) {
-                  auto info = new WordInfo();
-                  m.lock();
-                  info->index = this->vocabSize++;
-                  this->vocab->set(word, info);
-                  m.unlock();
-                }
-              }
-            }
-          });
-    }
-
-    for (int i = 0; i < coreCount; i++) {
-      handles[i].join();
-    }
-
-    FastVector<Entry<int>*> entries;
-    termFreq.getEntries(entries);
-    std::mutex vocabMutex;
-
-    for (int core = 0; core < coreCount; core++) {
-      handles[core] = std::thread(
-          [&documentsCount, &entries, &vocabMutex, core, &coreCount, this]() {
-            int start, end;
-            Utils::getBatchIndex(&start, &end, entries.getLength(), coreCount,
-                                 core);
-            for (int i = start; i < end; i++) {
-              auto entry = *entries[i];
-              auto idf = documentsCount / entry.value;
-              HashResult<WordInfo*> res;
-              vocabMutex.lock();
-              this->vocab->get(entry.key, &res);
-              if (!res.hasValue) {
-                std::cout << "Bruuuuuh this word is not in the vocab?\n";
-                return;
-              }
-              res.value->idf = log(idf);
-              vocabMutex.unlock();
-              delete entries[i];
-            }
-          });
-    }
-
-    for (int i = 0; i < coreCount; i++) {
-      handles[i].join();
-    }
-  } else {
-    for (int i = 0; i < sentences->getLength(); i++) {
-      auto sentence = (*sentences)[i];
-      auto sentenceLen = sentence->getLength();
-      Set visited;
-      for (int j = 0; j < sentenceLen; j++) {
-        auto word = (*sentence)[j];
-        HashResult<WordInfo*> res;
-        this->vocab->get(word, &res);
-        if (!visited.exists(word)) {
-          visited.add(word);
-          HashResult<int> res;
-          termFreq.get(word, &res);
-          termFreq.set(word, res.hasValue ? res.value + 1 : 1);
-        }
-
-        if (!res.hasValue) {
-          auto info = new WordInfo();
-          this->vocabSize++;
-          this->vocab->set(word, info);
-        }
-      }
-    }
-
-    FastVector<Entry<int>*> entries;
-    termFreq.getEntries(entries);
-    int entriesLength = entries.getLength();
-
-    int index = 0;
-
-    for (int i = 0; i < entriesLength; i++) {
-      auto entry = *entries[i];
+  for (int i = 0; i < sentences->getLength(); i++) {
+    auto sentence = (*sentences)[i];
+    auto sentenceLen = sentence->getLength();
+    Set visited;
+    for (int j = 0; j < sentenceLen; j++) {
+      auto word = (*sentence)[j];
       HashResult<WordInfo*> res;
-      this->vocab->get(entry.key, &res);
-      if (!res.hasValue) {
-        std::cout << "Bruuuuuh this word is not in the vocab?\n";
-        return;
+      this->vocab->get(word, &res);
+      if (!visited.exists(word)) {
+        visited.add(word);
+        HashResult<int> res;
+        termFreq.get(word, &res);
+        termFreq.set(word, res.hasValue ? res.value + 1 : 1);
       }
-      auto idf = documentsCount / entry.value;
-      res.value->idf = log(idf);
-      res.value->index = index++;
-      delete entries[i];
+
+      if (!res.hasValue) {
+        auto info = new WordInfo();
+        this->vocabSize++;
+        this->vocab->set(word, info);
+      }
     }
+  }
+
+  FastVector<Entry<int>*> entries;
+  termFreq.getEntries(entries);
+  int entriesLength = entries.getLength();
+
+  int index = 0;
+
+  for (int i = 0; i < entriesLength; i++) {
+    auto entry = *entries[i];
+    HashResult<WordInfo*> res;
+    this->vocab->get(entry.key, &res);
+    if (!res.hasValue) {
+      std::cout << "Bruuuuuh this word is not in the vocab?\n";
+      return;
+    }
+    auto idf = documentsCount / entry.value;
+    res.value->idf = log(idf);
+    res.value->index = index++;
+    delete entries[i];
   }
 }
 
