@@ -80,12 +80,12 @@ class Logistic {
            float learning_rate,
            int epocs = 1) {
     this->learning_rate = learning_rate;
-    auto scheduler = JobScheduler::getInstance();
+    auto scheduler = JobScheduler::getInstance() ;
     std::mutex predMutex, updateMutex, totalMutex;
     for (int e = 0; e < epocs; e++) {
       float total_loss = 0.0;
       for (int i = 0; i < batches.getLength(); i++) {
-        scheduler->addJob(new Job([i, &batches, this, &vectors, &ids, &total_loss, &predMutex, &updateMutex, &totalMutex] {
+        scheduler->addJob(new Job([i, &batches, this, &vectors, &ids, &total_loss, &predMutex, &updateMutex, &totalMutex, &dataset] {
           int batch_size = batches[i];
           int actual = batch_size;
           if (i == batches.getLength() - 1 && i != 0) {
