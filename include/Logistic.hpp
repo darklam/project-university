@@ -13,11 +13,11 @@ template <typename T>
 class Logistic {
     public:
         Logistic(int vocab_size){
-            this->b0 = 1.0;
+            this->b0 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
             this->b1 = new float[vocab_size * 2];
             this->loss_history = new FastVector<float>(10);
             for(int i = 0; i < vocab_size * 2; i++){
-                this->b1[i] = 1.0;
+                this->b1[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
             }
             this->size = vocab_size * 2;
         };
@@ -171,8 +171,8 @@ class Logistic {
             for(int i = 0; i < this->size / 2; i++){
                 result.append(v1[i]);
             }
-            for(int i = 0; i < this->size / 2; i++){
-                result.append(v2[i]);
+            for(int j = 0; j < this->size / 2; j++){
+                result.append(v2[j]);
             }
             return atoi(tokens[2].c_str());
         }
@@ -220,6 +220,14 @@ class Logistic {
         }
 
         float cost_function(int y, float pred){
+            if(pred == 0.0){
+                if(y == 0) return 0.0;
+                return 1.0;
+            }
+            if(pred == 1.0){
+                if(y == 1) return 0.0;
+                return 1.0;
+            }
             return (-y * log(pred) - (1 - y) * log(1 - pred));
         }
 };

@@ -258,7 +258,6 @@ void TfIdfVectorizer::transform(Vector2D sentences, float** vectors) {
     for(int i = 0; i < sentences->getLength(); i++){
       m += vectors[i][word];
     }
-    m /= sentences->getLength();
     mean.append(m);
   }
   FastVector<int> positions(1000);

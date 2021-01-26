@@ -234,9 +234,18 @@ bool checkIfExists(std::string str1, std::string str2, HashMap<int>& existing) {
   return false;
 }
 
+void split_in_batches(FastVector<int>& batches, int size){
+  int b = size / BATCH_SIZE;
+  int remaining = size % BATCH_SIZE;
+  for (int i = 0; i < b; i++) {
+    batches.append(BATCH_SIZE);
+  }
+  batches.append(remaining);
+}
+
 void iterative_learning(Clique* clique,
                         Logistic<float>* model,
-                        FastVector<std::string> camera_ids,
+                        std::string *camera_ids,
                         FastVector<std::string> dataset,
                         HashMap<int>& existing,
                         HashMap<int>& ids,
@@ -245,67 +254,53 @@ void iterative_learning(Clique* clique,
   float step = 0.5;
   bool flag = true;
   while (threshold < 0.5) {
-    if (flag) {
-      flag = false;
-      int b = dataset.getLength() / BATCH_SIZE;
-      int remaining = dataset.getLength() % BATCH_SIZE;
-      FastVector<int> batches(b + 1);
-      for (int i = 0; i < b; i++) {
-        batches.append(BATCH_SIZE);
-      }
-      batches.append(remaining);
-      model->fit(dataset, vectors, ids, batches, 0.01);
-    } else {
-      auto positives = clique->getPositiveEntries();
-      auto pos_unique = Pairs::RemoveDup(positives);
-      auto negatives = clique->getNegativeEntries();
-      auto new_pairs = Pairs::createDataset(pos_unique, negatives, existing);
-      auto neg_unique = Pairs::RemoveDup(negatives);
-      Pairs::deleteList(neg_unique);
-      Pairs::deleteList(pos_unique);
-      FastVector<std::string> new_dataset(100000);
-      new_pairs->values(dataset);
-      delete new_pairs;
-      std::cout << "New dataset size: " << new_dataset.getLength() << std::endl;
-
-      int b = dataset.getLength() / BATCH_SIZE;
-      int remaining = dataset.getLength() % BATCH_SIZE;
-      FastVector<int> batches(b + 1);
-      for (int i = 0; i < b; i++) {
-        batches.append(BATCH_SIZE);
-      }
-      batches.append(remaining);
-      model->fit(new_dataset, vectors, ids, batches, 0.01);
-    }
-    FILE* file;
-    file = fopen("nes_set.csv", "w+");
-    for (int i = 0; i < 1000; i++) {
-      for (int j = i + 1; j < 1000; j++) {
-        if (checkIfExists(camera_ids[i], camera_ids[j], existing)) {
-          continue;
-        }
+    // if (flag) {
+    //   flag = false;
+    //   FastVector<int> batches(100);
+    //   split_in_batches(batches, dataset.getLength());
+    //   model->fit(dataset, vectors, ids, batches, 0.01);
+    // } else {
+    //   auto positives = clique->getPositiveEntries();
+    //   auto pos_unique = Pairs::RemoveDup(positives);
+    //   auto negatives = clique->getNegativeEntries();
+    //   auto new_pairs = Pairs::createDataset(pos_unique, negatives, existing);
+    //   auto neg_unique = Pairs::RemoveDup(negatives);
+    //   Pairs::deleteList(neg_unique);
+    //   Pairs::deleteList(pos_unique);
+    //   FastVector<std::string> new_dataset(100000);
+    //   new_pairs->values(dataset);
+    //   delete new_pairs;
+    //   std::cout << "New dataset size: " << new_dataset.getLength() << std::endl;
+    //   FastVector<int> batches(100);
+    //   split_in_batches(batches, new_dataset.getLength());
+    //   model->fit(new_dataset, vectors, ids, batches, 0.01);
+    // }
+    // FILE* file;
+    // file = fopen("nes_set.csv", "w+");
+    for (int i = 0; i < 10000; i++) {
+      if(i % 1000 == 0) printf("%d\n", i);
+      for (int j = i + 1; j < 10000; j++) {
         FastVector<float> vec(2000);
         asVector(camera_ids[i], camera_ids[j], vectors, ids, vec);
         auto prob = model->prob(vec);
-        if ((prob < threshold) || (prob > 1 - threshold)) {
-          std::cout << prob << " "
-                    << " " << threshold << " " << 1 - threshold << std::endl;
-          if (prob >= 0.5) {
-            fprintf(file, "%s, %s, %d\n", camera_ids[i].c_str(),
-                    camera_ids[j].c_str(), 1);
-          } else {
-            fprintf(file, "%s, %s, %d\n", camera_ids[i].c_str(),
-                    camera_ids[j].c_str(), 0);
-          }
-        }
+        // if ((prob < threshold) || (prob > 1 - threshold)) {
+        //   std::cout << prob << " "
+        //             << " " << threshold << " " << 1 - threshold << std::endl;
+        //   if (prob >= 0.5) {
+        //     fprintf(file, "%s, %s, %d\n", camera_ids[i].c_str(),
+        //             camera_ids[j].c_str(), 1);
+        //   } else {
+        //     fprintf(file, "%s, %s, %d\n", camera_ids[i].c_str(),
+        //             camera_ids[j].c_str(), 0);
+        //   }
+        // }
       }
     }
-    fclose(file);
-    resolve(clique, "nes_set.csv");
+    // fclose(file);
+    // resolve(clique, "nes_set.csv");
     threshold += step;
     step *= 2;
   }
-  delete clique;
 }
 
 
@@ -331,16 +326,16 @@ int main(int argc, char** argv) {
 
   FastVector<CameraDTO*> cameras(30000);
   FastVector<std::string> texts(30000);
-  FastVector<std::string> camera_ids(30000);
   HashMap<int> ids(30000);
 
   /* read folder with cameras and extract values */
   std::cout << "Getting cameras..." << std::endl;
   JSON::loadData(path_cameras, cameras);
+  std::string* camera_ids = new std::string[cameras.getLength()];
   for (int i = 0; i < cameras.getLength(); i++) {
     auto str = cameras[i]->getAllProperties();
     texts.append(str);
-    camera_ids.append(cameras[i]->getId());
+    camera_ids[i] = cameras[i]->getId();
     ids.set(cameras[i]->getId(), i);
     delete cameras[i];
   }
@@ -368,6 +363,7 @@ int main(int argc, char** argv) {
     auto entry = vec.get(i);
     delete entry;
   }
+  
 
   /* read csv */
   std::cout << "Reading w_dataset..." << std::endl;
@@ -405,9 +401,9 @@ int main(int argc, char** argv) {
   batches.append(remaining);
 
   // Logistic model
-  Logistic<float>* model = new Logistic<float>(vocab_size);
+  Logistic<float>* model = new Logistic<float>(1000);
   std::cout << "Fitting model...\n";
-  model->fit(train_set, vectors, ids, batches, 0.01);
+  model->fit(train_set, vectors, ids, batches, 0.01, 5);
 
   std::cout << "\nTesting train_set...\n";
   FastVector<int> train_labels(10000);
@@ -415,8 +411,7 @@ int main(int argc, char** argv) {
   printMetrics(train_labels, train_pred);
   delete[] train_pred;
 
-  // iterative_learning(clique, model, camera_ids, train_set, existing_pairs, ids,
-  //                    vectors);
+  iterative_learning(clique, model, camera_ids, train_set, existing_pairs, ids, vectors);
 
   auto positives1 = clique->getPositiveEntries();
   auto pos_unique1 = Pairs::RemoveDup(positives1);
@@ -441,6 +436,7 @@ int main(int argc, char** argv) {
     delete[] vectors[i];
   }
   delete[] vectors;
+  delete[] camera_ids;
   delete model;
   return 0;
 }
