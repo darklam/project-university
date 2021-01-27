@@ -155,8 +155,8 @@ int main(int argc, char** argv) {
   Metrics::printMetrics(train_labels, train_pred);
   delete[] train_pred;
 
-  // Iterative::train(clique, model, camera_ids, train_set, existing_pairs, ids,
-  // vectors, total_cameras);
+  std::cout << "\nApplying iterative learing method..." << std::endl;
+  Iterative::train(clique, model, camera_ids, train_set, existing_pairs, ids, vectors, total_cameras);
 
   auto positives1 = clique->getPositiveEntries();
   auto pos_unique1 = Pairs::RemoveDup(positives1);

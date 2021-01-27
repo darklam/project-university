@@ -10,7 +10,6 @@
 #include "Types.hpp"
 #include "Utils.hpp"
 #include "JobScheduler.hpp"
-
 template <typename T>
 class Logistic {
  public:
@@ -80,12 +79,13 @@ class Logistic {
            float learning_rate,
            int epocs = 1) {
     this->learning_rate = learning_rate;
-    auto scheduler = JobScheduler::getInstance() ;
-    std::mutex predMutex, updateMutex, totalMutex;
+    if(dataset.getLength() == 0) return;
+    // auto scheduler = JobScheduler::getInstance() ;
+    // std::mutex predMutex, updateMutex, totalMutex;
     for (int e = 0; e < epocs; e++) {
       float total_loss = 0.0;
       for (int i = 0; i < batches.getLength(); i++) {
-        scheduler->addJob(new Job([i, &batches, this, &vectors, &ids, &total_loss, &predMutex, &updateMutex, &totalMutex, &dataset] {
+        // scheduler->addJob(new Job([i, &batches, this, &vectors, &ids, &total_loss, &predMutex, &updateMutex, &totalMutex, &dataset] {
           int batch_size = batches[i];
           int actual = batch_size;
           if (i == batches.getLength() - 1 && i != 0) {
@@ -101,9 +101,9 @@ class Logistic {
             FastVector<float> vec(this->size);
             auto row = dataset.get(b + (i * actual));
             int y_true = this->getVector(row, vectors, ids, vec);
-            predMutex.lock();
+            // predMutex.lock();
             auto pred = this->make_pred(vec);
-            predMutex.unlock();
+            // predMutex.unlock();
             auto _loss = this->cost_function(y_true, pred);
             for (auto j = 0; j < this->size; j++) {
               auto value = ws[j] + (pred - y_true) * vec[j];
@@ -112,16 +112,16 @@ class Logistic {
             w0 += (pred - y_true);
             batch_loss += _loss;
           }
-          updateMutex.lock();
+          // updateMutex.lock();
           this->update_weights(ws, w0, batch_size);
-          updateMutex.unlock();
-          totalMutex.lock();
+          // updateMutex.unlock();
+          // totalMutex.lock();
           total_loss += (batch_loss / batch_size);
-          totalMutex.unlock();
-        }));
+          // totalMutex.unlock();
+        // }));
       }
       std::cout << "Epoch: " << e
-                << " - Loss:" << total_loss / batches.getLength() << std::endl;
+                << " - Loss: " << total_loss / batches.getLength() << std::endl;
       this->loss_history->append(total_loss / batches.getLength());
     }
   }
@@ -182,13 +182,13 @@ class Logistic {
     HashResult<int> res1;
     ids.get(tokens[0], &res1);
     if (!res1.hasValue) {
-      printf("something bad\n");
+      printf("something bad %s\n", tokens[0].c_str());
       exit(1);
     }
     HashResult<int> res2;
     ids.get(tokens[1], &res2);
     if (!res2.hasValue) {
-      printf("something bad\n");
+      printf("something bad %s\n", tokens[1].c_str());
       exit(1);
     }
     auto v1 = vectors[res1.value];
