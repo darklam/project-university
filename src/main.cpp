@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
   JSON::loadData(path_cameras, cameras);
   std::string* camera_ids = new std::string[cameras.getLength()];
   int total_cameras = cameras.getLength();
+  std::cout << "Total cameras: " << total_cameras << std::endl;
   for (int i = 0; i < total_cameras; i++) {
     auto str = cameras[i]->getAllProperties();
     texts.append(str);

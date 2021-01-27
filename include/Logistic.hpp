@@ -136,18 +136,24 @@ class Logistic {
                FastVector<int>& target) {
     int* predictions = new int[dataset.getLength()];
     auto scheduler = JobScheduler::getInstance();
+    std::mutex predMutex, targetMutex;
     for (int i = 0; i < dataset.getLength(); i++) {
-      scheduler->addJob(new Job([i, this, &dataset, &vectors, &ids, &target, &predictions] {
+      scheduler->addJob(new Job([i, this, &dataset, &vectors, &ids, &target, 
+                                &predictions, &predMutex, &targetMutex] {
         FastVector<float> vec(this->size);
         auto row = dataset.get(i);
         int y_true = this->getVector(row, vectors, ids, vec);
+        targetMutex.lock();
         target.set(i, y_true);
+        targetMutex.unlock();
+        predMutex.lock();
         auto pred = this->make_pred(vec);
         if (pred >= 0.5) {
           predictions[i] = 1;
         } else {
           predictions[i] = 0;
         }
+        predMutex.unlock();
       }));
     }
     scheduler->waitAllJobs();
