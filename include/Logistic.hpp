@@ -7,9 +7,9 @@
 #include "CustomVector.hpp"
 #include "FastVector.hpp"
 #include "HashMap.hpp"
+#include "JobScheduler.hpp"
 #include "Types.hpp"
 #include "Utils.hpp"
-#include "JobScheduler.hpp"
 
 template <typename T>
 class Logistic {
@@ -80,46 +80,49 @@ class Logistic {
            float learning_rate,
            int epocs = 1) {
     this->learning_rate = learning_rate;
-    auto scheduler = JobScheduler::getInstance() ;
+    auto scheduler = JobScheduler::getInstance();
     std::mutex predMutex, updateMutex, totalMutex;
     for (int e = 0; e < epocs; e++) {
       float total_loss = 0.0;
       for (int i = 0; i < batches.getLength(); i++) {
-        scheduler->addJob(new Job([i, &batches, this, &vectors, &ids, &total_loss, &predMutex, &updateMutex, &totalMutex, &dataset] {
-          int batch_size = batches[i];
-          int actual = batch_size;
-          if (i == batches.getLength() - 1 && i != 0) {
-            actual = batches[i - 1];
-          }
-          FastVector<float> ws(this->size);
-          for (auto j = 0; j < this->size; j++) {
-            ws.append(0.0);
-          }
-          float w0 = 0.0;
-          float batch_loss = 0.0;
-          for (int b = 0; b < batch_size; b++) {
-            FastVector<float> vec(this->size);
-            auto row = dataset.get(b + (i * actual));
-            int y_true = this->getVector(row, vectors, ids, vec);
-            predMutex.lock();
-            auto pred = this->make_pred(vec);
-            predMutex.unlock();
-            auto _loss = this->cost_function(y_true, pred);
-            for (auto j = 0; j < this->size; j++) {
-              auto value = ws[j] + (pred - y_true) * vec[j];
-              ws.set(j, value);
-            }
-            w0 += (pred - y_true);
-            batch_loss += _loss;
-          }
-          updateMutex.lock();
-          this->update_weights(ws, w0, batch_size);
-          updateMutex.unlock();
-          totalMutex.lock();
-          total_loss += (batch_loss / batch_size);
-          totalMutex.unlock();
-        }));
+        scheduler->addJob(
+            new Job([i, &batches, this, &vectors, &ids, &total_loss, &predMutex,
+                     &updateMutex, &totalMutex, &dataset] {
+              int batch_size = batches[i];
+              int actual = batch_size;
+              if (i == batches.getLength() - 1 && i != 0) {
+                actual = batches[i - 1];
+              }
+              FastVector<float> ws(this->size);
+              for (auto j = 0; j < this->size; j++) {
+                ws.append(0.0);
+              }
+              float w0 = 0.0;
+              float batch_loss = 0.0;
+              for (int b = 0; b < batch_size; b++) {
+                FastVector<float> vec(this->size);
+                auto row = dataset.get(b + (i * actual));
+                int y_true = this->getVector(row, vectors, ids, vec);
+                predMutex.lock();
+                auto pred = this->make_pred(vec);
+                predMutex.unlock();
+                auto _loss = this->cost_function(y_true, pred);
+                for (auto j = 0; j < this->size; j++) {
+                  auto value = ws[j] + (pred - y_true) * vec[j];
+                  ws.set(j, value);
+                }
+                w0 += (pred - y_true);
+                batch_loss += _loss;
+              }
+              updateMutex.lock();
+              this->update_weights(ws, w0, batch_size);
+              updateMutex.unlock();
+              totalMutex.lock();
+              total_loss += (batch_loss / batch_size);
+              totalMutex.unlock();
+            }));
       }
+      scheduler->waitAllJobs();
       std::cout << "Epoch: " << e
                 << " - Loss:" << total_loss / batches.getLength() << std::endl;
       this->loss_history->append(total_loss / batches.getLength());
@@ -131,18 +134,22 @@ class Logistic {
                HashMap<int>& ids,
                FastVector<int>& target) {
     int* predictions = new int[dataset.getLength()];
+    auto scheduler = JobScheduler::getInstance();
     for (int i = 0; i < dataset.getLength(); i++) {
-      FastVector<float> vec(this->size);
-      auto row = dataset.get(i);
-      int y_true = this->getVector(row, vectors, ids, vec);
-      target.append(y_true);
-      auto pred = this->make_pred(vec);
-      if (pred >= 0.5) {
-        predictions[i] = 1;
-      } else {
-        predictions[i] = 0;
-      }
+      scheduler->addJob(new Job([i, this, &dataset, &vectors, &ids, &target, &predictions] {
+        FastVector<float> vec(this->size);
+        auto row = dataset.get(i);
+        int y_true = this->getVector(row, vectors, ids, vec);
+        target.set(i, y_true);
+        auto pred = this->make_pred(vec);
+        if (pred >= 0.5) {
+          predictions[i] = 1;
+        } else {
+          predictions[i] = 0;
+        }
+      }));
     }
+    scheduler->waitAllJobs();
     return predictions;
   }
 

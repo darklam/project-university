@@ -150,7 +150,8 @@ int main(int argc, char** argv) {
   model->fit(train_set, vectors, ids, batches, 0.01, 5);
 
   std::cout << "\nTesting train_set...\n";
-  FastVector<int> train_labels(10000);
+  FastVector<int> train_labels(train_set.getLength());
+  train_labels.forceInit(0);
   auto train_pred = model->predict(train_set, vectors, ids, train_labels);
   Metrics::printMetrics(train_labels, train_pred);
   delete[] train_pred;
@@ -167,13 +168,15 @@ int main(int argc, char** argv) {
   delete clique;
 
   std::cout << "\nTesting validation set...\n";
-  FastVector<int> val_labels(10000);
+  FastVector<int> val_labels(test_set.getLength());
+  val_labels.forceInit(0);
   auto val_pred = model->predict(test_set, vectors, ids, val_labels);
   Metrics::printMetrics(val_labels, val_pred);
   delete[] val_pred;
 
   std::cout << "\nTesting test set...\n";
-  FastVector<int> test_labels(10000);
+  FastVector<int> test_labels(test_set.getLength());
+  test_labels.forceInit(0);
   auto test_pred = model->predict(test_set, vectors, ids, test_labels);
   Metrics::printMetrics(test_labels, test_pred);
   delete[] test_pred;
