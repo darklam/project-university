@@ -27,7 +27,7 @@
 struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
   std::string outType = "pairs";
-  std::string inName = "W_Dataset.csv";
+  std::string inName = "w_dataset.csv";
   std::string inCameras = "cameras";
 };
 
@@ -157,8 +157,8 @@ int main(int argc, char** argv) {
   Metrics::printMetrics(train_labels, train_pred);
   delete[] train_pred;
 
-  // std::cout << "\nApplying iterative learning method..." << std::endl;
-  // Iterative::train(clique, model, camera_ids, train_set, existing_pairs, ids, vectors, total_cameras);
+  std::cout << "\nApplying iterative learning method..." << std::endl;
+  Iterative::train(clique, model, camera_ids, train_set, existing_pairs, ids, vectors, total_cameras);
 
   auto positives1 = clique->getPositiveEntries();
   auto pos_unique1 = Pairs::RemoveDup(positives1);

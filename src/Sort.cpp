@@ -6,7 +6,7 @@
 
 void Sort::sortMax(int length, FastVector<Entry<int>*>& src, FastVector<int>& dest){
     for(int i = 0; i < length; i++){
-        int max = -9999999999999999;
+        int max = -999999999;
         int pos = -1;
         for(int j = 0; j < src.getLength(); j++){
             if(dest.includes(j)) continue;
