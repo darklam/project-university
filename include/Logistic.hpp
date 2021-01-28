@@ -174,14 +174,12 @@ class Logistic {
     float p = this->b0;
     auto scheduler = JobScheduler::getInstance();
     float *vals = new float[this->size];
-    printf("before\n");
     for (int i = 0; i < this->size; i++) {
       scheduler->addJob(new Job([i, this, &p, &vec, &vals] {
         vals[i] = this->b1[i] * vec.get(i);
       }));
     }
     scheduler->waitAllJobs();
-    printf("after\n");
     for (int i = 0; i < this->size; i++) {
       p += vals[i];
     }
