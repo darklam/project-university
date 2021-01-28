@@ -173,16 +173,17 @@ class Logistic {
   float prob(FastVector<T>& vec) {
     float p = this->b0;
     auto scheduler = JobScheduler::getInstance();
-    std::mutex pMutex;
+    float *vals = new float[this->size];
     for (int i = 0; i < this->size; i++) {
-      scheduler->addJob(new Job([i, this, &p, &pMutex, &vec] {
-        auto val = this->b1[i] * vec.get(i);
-        pMutex.lock();
-        p += val;
-        pMutex.unlock();
+      scheduler->addJob(new Job([i, this, &p, &vec, &vals] {
+        vals[i] = this->b1[i] * vec.get(i);
       }));
     }
     scheduler->waitAllJobs();
+    for (int i = 0; i < this->size; i++) {
+      p += vals[i];
+    }
+    delete[] vals;
     float sigmoid = 1 / (1 + exp(-p));
     return sigmoid;
   }
