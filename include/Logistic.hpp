@@ -183,7 +183,7 @@ class Logistic {
     auto scheduler = JobScheduler::getInstance();
     float *vals = new float[this->size];
     for (int i = 0; i < this->size; i++) {
-      scheduler->addJob(new Job([i, this, &p, &vec] {
+      scheduler->addJob(new Job([i, this, &p, &vec, &vals] {
         vals[i] = this->b1[i] * vec.get(i);
       }));
     }
