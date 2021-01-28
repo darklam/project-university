@@ -130,7 +130,7 @@ void Iterative::train(Clique* clique,
                 if(exists(camera_ids[i], camera_ids[j], existing)) continue;
                 vec.forceInit(0.0);
                 asVector(camera_ids[i], camera_ids[j], vectors, ids, vec);
-                auto prob = model->prob(vec);
+                auto prob = model->prob_no_threads(vec);
                 if ((prob < threshold) || (prob > 1 - threshold)) {
                     if (prob >= 0.5) {
                         fprintf(file, "%s,%s,%d\n", camera_ids[i].c_str(), camera_ids[j].c_str(), 1);
