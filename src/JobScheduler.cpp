@@ -1,4 +1,19 @@
 #include "JobScheduler.hpp"
+JobScheduler* JobScheduler::instance = nullptr;
+
+JobScheduler* JobScheduler::getInstance() {
+  if (JobScheduler::instance == nullptr) {
+    JobScheduler::instance = new JobScheduler();
+  }
+
+  return JobScheduler::instance;
+}
+
+void JobScheduler::destroy() {
+  if (JobScheduler::instance != nullptr) {
+    delete JobScheduler::instance;
+  }
+}
 
 JobScheduler::JobScheduler() {
   queue = new Queue<Job*>(queueMax);
@@ -51,7 +66,7 @@ JobScheduler::JobScheduler() {
             break;
           }
         }
-        if (allDone) {
+        if (allDone && this->queue->getLength() == 0) {
           sem_post(&this->allFinished);
         }
         this->statusesMutex.unlock();

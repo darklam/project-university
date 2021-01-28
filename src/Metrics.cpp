@@ -13,7 +13,7 @@ float Metrics::f1_score(FastVector<int>& y_true, int *y_pred){
         if(y_true.get(i) != y_pred[i] && y_pred[i] == 1){
             fp++;
         }
-        if(y_true.get(i) == y_pred[i] && y_pred[i] == 0){
+        if(y_true.get(i) != y_pred[i] && y_pred[i] == 0){
             fn++;
         }
     }

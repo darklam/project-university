@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(project VERSION 0.1.0)
 find_package(Threads)
 
-SET(CMAKE_CXX_FLAGS_PRODUCTION "-O3 -g -march=native -mtune=native -DNDEBUG -w")
+SET(CMAKE_CXX_FLAGS_PRODUCTION "-O3 -g -march=native -mtune=native -pthread -DNDEBUG -w")
 
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 add_executable(project ${SOURCES})

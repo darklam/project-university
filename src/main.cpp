@@ -7,9 +7,11 @@
 #include "BowVectorizer.hpp"
 #include "CSV.hpp"
 #include "Clique.hpp"
+#include "DatasetsFunc.hpp"
 #include "FastVector.hpp"
 #include "FileSystem.hpp"
 #include "HashMap.hpp"
+#include "Iterative.hpp"
 #include "JSON.hpp"
 #include "JobScheduler.hpp"
 #include "List.hpp"
@@ -19,15 +21,13 @@
 #include "Set.hpp"
 #include "TfIdfVectorizer.hpp"
 #include "Utils.hpp"
-#include "DatasetsFunc.hpp"
-#include "Iterative.hpp"
 
 #define BATCH_SIZE 1024
 
 struct ProgramParams {
   std::string outName = "W_Out_Pairs.csv";
   std::string outType = "pairs";
-  std::string inName = "W_Dataset.csv";
+  std::string inName = "w_dataset.csv";
   std::string inCameras = "cameras";
 };
 
@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
   JSON::loadData(path_cameras, cameras);
   std::string* camera_ids = new std::string[cameras.getLength()];
   int total_cameras = cameras.getLength();
+  std::cout << "Total cameras: " << total_cameras << std::endl;
   for (int i = 0; i < total_cameras; i++) {
     auto str = cameras[i]->getAllProperties();
     texts.append(str);
@@ -110,7 +111,6 @@ int main(int argc, char** argv) {
     auto entry = vec.get(i);
     delete entry;
   }
-  
 
   /* read csv */
   std::cout << "Reading w_dataset..." << std::endl;
@@ -125,7 +125,8 @@ int main(int argc, char** argv) {
   _pairs->values(dataset);
   delete _pairs;
   int dataset_size = dataset.getLength();
-  std::cout << "Done with dataset, final number of rows: " << dataset_size << std::endl;
+  std::cout << "Done with dataset, final number of rows: " << dataset_size
+            << std::endl;
   int train_size = 0.6 * dataset.getLength();
   int test_size = 0.2 * dataset.getLength() + 1;
   FastVector<std::string> train_set(train_size);
@@ -150,12 +151,14 @@ int main(int argc, char** argv) {
   model->fit(train_set, vectors, ids, batches, 0.01, 5);
 
   std::cout << "\nTesting train_set...\n";
-  FastVector<int> train_labels(10000);
+  FastVector<int> train_labels(train_set.getLength());
+  train_labels.forceInit(0);
   auto train_pred = model->predict(train_set, vectors, ids, train_labels);
   Metrics::printMetrics(train_labels, train_pred);
   delete[] train_pred;
 
-  // Iterative::train(clique, model, camera_ids, train_set, existing_pairs, ids, vectors, total_cameras);
+  std::cout << "\nApplying iterative learning method..." << std::endl;
+  Iterative::train(clique, model, camera_ids, train_set, existing_pairs, ids, vectors, total_cameras);
 
   auto positives1 = clique->getPositiveEntries();
   auto pos_unique1 = Pairs::RemoveDup(positives1);
@@ -166,13 +169,15 @@ int main(int argc, char** argv) {
   delete clique;
 
   std::cout << "\nTesting validation set...\n";
-  FastVector<int> val_labels(10000);
+  FastVector<int> val_labels(test_set.getLength());
+  val_labels.forceInit(0);
   auto val_pred = model->predict(test_set, vectors, ids, val_labels);
   Metrics::printMetrics(val_labels, val_pred);
   delete[] val_pred;
 
   std::cout << "\nTesting test set...\n";
-  FastVector<int> test_labels(10000);
+  FastVector<int> test_labels(test_set.getLength());
+  test_labels.forceInit(0);
   auto test_pred = model->predict(test_set, vectors, ids, test_labels);
   Metrics::printMetrics(test_labels, test_pred);
   delete[] test_pred;

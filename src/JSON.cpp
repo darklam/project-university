@@ -104,32 +104,9 @@ void JSON::loadData(const std::string& basePath,
                     FastVector<CameraDTO*>& cameras) {
   FastVector<std::string> files(30000);
   FileSystem::getAllFiles(basePath, files);
-  auto useThreads = Utils::getEnvVar("USE_THREADS");
-  if (useThreads == "1") {
-    auto coreCount = std::thread::hardware_concurrency();
-    std::thread handles[coreCount];
-    std::mutex m;
-    for (int core = 0; core < coreCount; core++) {
-      handles[core] = std::thread([&files, &coreCount, core, &cameras, &m]() {
-        int start, end;
-        Utils::getBatchIndex(&start, &end, files.getLength(), coreCount, core);
-        for (int i = start; i < end; i++) {
-          auto current = files[i];
-          auto camera = JSON::parseJSON(current);
-          m.lock();
-          cameras.append(camera);
-          m.unlock();
-        }
-      });
-    }
-    for (int i = 0; i < coreCount; i++) {
-      handles[i].join();
-    }
-  } else {
-    for (int i = 0; i < files.getLength(); i++) {
-      auto current = files[i];
-      auto camera = JSON::parseJSON(current);
-      cameras.append(camera);
-    }
+  for (int i = 0; i < files.getLength(); i++) {
+    auto current = files[i];
+    auto camera = JSON::parseJSON(current);
+    cameras.append(camera);
   }
 }

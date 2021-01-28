@@ -32,6 +32,10 @@ public:
     }
   }
 
+  int getLength() {
+    return this->size;
+  }
+
   ~Queue() {
     delete[] queue;
   }
