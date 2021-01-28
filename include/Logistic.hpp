@@ -80,7 +80,8 @@ class Logistic {
            float learning_rate,
            int epocs = 1) {
     this->learning_rate = learning_rate;
-    if(dataset.getLength() == 0) return;
+    if (dataset.getLength() == 0)
+      return;
     auto scheduler = JobScheduler::getInstance();
     std::mutex predMutex, updateMutex, totalMutex;
     for (int e = 0; e < epocs; e++) {
@@ -138,25 +139,26 @@ class Logistic {
     auto scheduler = JobScheduler::getInstance();
     std::mutex predMutex, targetMutex, vectorMutex;
     for (int i = 0; i < dataset.getLength(); i++) {
-      scheduler->addJob(new Job([i, this, &dataset, &vectors, &ids, &target, 
-                                &predictions, &predMutex, &targetMutex, &vectorMutex] {
-        FastVector<float> vec(this->size);
-        auto row = dataset.get(i);
-        vectorMutex.lock();
-        int y_true = this->getVector(row, vectors, ids, vec);
-        vectorMutex.unlock();
-        targetMutex.lock();
-        target.set(i, y_true);
-        targetMutex.unlock();
-        predMutex.lock();
-        auto pred = this->make_pred(vec);
-        if (pred >= 0.5) {
-          predictions[i] = 1;
-        } else {
-          predictions[i] = 0;
-        }
-        predMutex.unlock();
-      }));
+      scheduler->addJob(
+          new Job([i, this, &dataset, &vectors, &ids, &target, &predictions,
+                   &predMutex, &targetMutex, &vectorMutex] {
+            FastVector<float> vec(this->size);
+            auto row = dataset.get(i);
+            vectorMutex.lock();
+            int y_true = this->getVector(row, vectors, ids, vec);
+            vectorMutex.unlock();
+            targetMutex.lock();
+            target.set(i, y_true);
+            targetMutex.unlock();
+            predMutex.lock();
+            auto pred = this->make_pred(vec);
+            if (pred >= 0.5) {
+              predictions[i] = 1;
+            } else {
+              predictions[i] = 0;
+            }
+            predMutex.unlock();
+          }));
     }
     scheduler->waitAllJobs();
     return predictions;
@@ -177,7 +179,20 @@ class Logistic {
   }
 
   float prob(FastVector<T>& vec) {
-     return this->make_pred(vec); 
+    float p = this->b0;
+    auto scheduler = JobScheduler::getInstance();
+    std::mutex pMutex;
+    for (int i = 0; i < this->size; i++) {
+      scheduler->addJob(new Job([i, this, &p, &pMutex, &vec] {
+        auto val = this->b1[i] * vec.get(i);
+        pMutex.lock();
+        p += val;
+        pMutex.unlock();
+      }));
+    }
+    scheduler->waitAllJobs();
+    float sigmoid = 1 / (1 + exp(-p));
+    return sigmoid;
   }
 
   float prob(T* vec) { return this->make_pred(vec); }
