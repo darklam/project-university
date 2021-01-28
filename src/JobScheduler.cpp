@@ -66,7 +66,7 @@ JobScheduler::JobScheduler() {
             break;
           }
         }
-        if (allDone) {
+        if (allDone && this->queue->getLength() == 0) {
           sem_post(&this->allFinished);
         }
         this->statusesMutex.unlock();
