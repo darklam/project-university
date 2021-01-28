@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
   Metrics::printMetrics(train_labels, train_pred);
   delete[] train_pred;
 
-  // std::cout << "\nApplying iterative learing method..." << std::endl;
+  // std::cout << "\nApplying iterative learning method..." << std::endl;
   // Iterative::train(clique, model, camera_ids, train_set, existing_pairs, ids, vectors, total_cameras);
 
   auto positives1 = clique->getPositiveEntries();

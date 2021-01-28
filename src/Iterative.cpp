@@ -8,6 +8,8 @@
 #include "DatasetsFunc.hpp"
 #include "Pairs.hpp"
 #define BATCH_SIZE 1024
+#define MAXLENGTH 2000
+
 
 void Iterative::asVector(std::string str1,
                         std::string str2,
@@ -111,7 +113,6 @@ void Iterative::train(Clique* clique,
             Pairs::deleteList(neg_unique);
             Pairs::deleteList(pos_unique);
             delete new_pairs;
-            std::cout << "New dataset size: " << new_dataset.getLength() << std::endl;
             int total = dataset.getLength() / BATCH_SIZE;
             FastVector<int> batches(total + 1);
             DatasetsFunc::split_in_batches(batches, new_dataset.getLength());
@@ -121,9 +122,11 @@ void Iterative::train(Clique* clique,
         file = fopen("nes_set.csv", "w+");
         long m = 0;
         FastVector<float> vec(2000);
-        
-        for (int i = 0; i < 10000; i++) {
-            for (int j = i + 1; j < 10000; j++) {
+        int imin = rand() % (total_cameras - MAXLENGTH);
+        int jmin = rand() % (total_cameras - MAXLENGTH);
+        for (int i = imin; i < imin + MAXLENGTH; i++) {
+            for (int j = jmin; j < jmin + MAXLENGTH; j++) {
+                if(i == j) continue;
                 if(exists(camera_ids[i], camera_ids[j], existing)) continue;
                 vec.forceInit(0.0);
                 asVector(camera_ids[i], camera_ids[j], vectors, ids, vec);

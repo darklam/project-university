@@ -136,13 +136,15 @@ class Logistic {
                FastVector<int>& target) {
     int* predictions = new int[dataset.getLength()];
     auto scheduler = JobScheduler::getInstance();
-    std::mutex predMutex, targetMutex;
+    std::mutex predMutex, targetMutex, vectorMutex;
     for (int i = 0; i < dataset.getLength(); i++) {
       scheduler->addJob(new Job([i, this, &dataset, &vectors, &ids, &target, 
-                                &predictions, &predMutex, &targetMutex] {
+                                &predictions, &predMutex, &targetMutex, &vectorMutex] {
         FastVector<float> vec(this->size);
         auto row = dataset.get(i);
+        vectorMutex.lock();
         int y_true = this->getVector(row, vectors, ids, vec);
+        vectorMutex.unlock();
         targetMutex.lock();
         target.set(i, y_true);
         targetMutex.unlock();
@@ -174,7 +176,9 @@ class Logistic {
     return predictions;
   }
 
-  float prob(FastVector<T>& vec) { return this->make_pred(vec); }
+  float prob(FastVector<T>& vec) {
+     return this->make_pred(vec); 
+  }
 
   float prob(T* vec) { return this->make_pred(vec); }
 
